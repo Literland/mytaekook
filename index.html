@@ -16,19 +16,8 @@
             padding: 0;
             background-color: #000;
             color: #FFF;
-            /* Aplicamos la nueva fuente a todo */
             font-family: 'Mali', 'Courier New', monospace;
-            overflow: hidden; /* Evita barras de scroll */
-        }
-
-        /* Canvas para las animaciones (corazones y partículas) */
-        #animation-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1; /* Detrás del mensaje */
+            overflow: hidden;
         }
 
         /* Contenedor principal centrado */
@@ -43,12 +32,12 @@
             position: absolute;
             top: 0;
             left: 0;
+            z-index: 10; /* Siempre encima del 3D */
         }
 
-        /* 1. Pantalla de "Clic para empezar" */
         #click-overlay {
             cursor: pointer;
-            z-index: 10;
+            z-index: 20;
         }
         
         #click-overlay h1 {
@@ -63,43 +52,29 @@
             color: #aaa;
         }
 
-        /* 2. Contenido del Mensaje (oculto al inicio) */
         #message-content {
-            display: none; /* Oculto por defecto */
-            z-index: 5; /* Encima de las animaciones */
+            display: none;
+            z-index: 15;
         }
 
-        /* El Mensaje principal */
         .message {
             font-size: 5rem;
             font-weight: bold;
-            color: #EE66A6; /* Tono rosa */
-            /* Efecto de neón brillante */
+            color: #EE66A6;
             text-shadow: 0 0 10px #EE66A6, 0 0 20px #EE66A6, 0 0 30px #f7a;
-            /* NUEVA ANIMACIÓN: "glow" (brillo) y "breath" (respiración) */
             animation: glow 1.5s infinite alternate, 
-                         breath 4s infinite alternate ease-in-out;
-            white-space: pre-wrap; /* Respeta los saltos de línea */
+                       breath 4s infinite alternate ease-in-out;
+            white-space: pre-wrap;
         }
 
-        /* Animaciones */
         @keyframes glow {
-            from {
-                text-shadow: 0 0 10px #EE66A6, 0 0 20px #EE66A6, 0 0 30px #f7a;
-            }
-            to {
-                text-shadow: 0 0 20px #EE66A6, 0 0 30px #f7a, 0 0 40px #f7a;
-            }
+            from { text-shadow: 0 0 10px #EE66A6, 0 0 20px #EE66A6, 0 0 30px #f7a; }
+            to { text-shadow: 0 0 20px #EE66A6, 0 0 30px #f7a, 0 0 40px #f7a; }
         }
 
-        /* NUEVA ANIMACIÓN DE RESPIRACIÓN PARA EL TEXTO */
         @keyframes breath {
-            from { 
-                transform: scale(1); 
-            }
-            to { 
-                transform: scale(1.03); /* Se agranda un 3% */
-            }
+            from { transform: scale(1); }
+            to { transform: scale(1.03); }
         }
 
         @keyframes pulse {
@@ -108,25 +83,39 @@
             100% { opacity: 0.7; }
         }
 
-        /* Para que se vea bien en celulares */
         @media (max-width: 600px) {
-            .message {
-                font-size: 3rem; /* Letra más pequeña en móviles */
-            }
-            #click-overlay h1 {
-                font-size: 1.8rem;
-            }
+            .message { font-size: 3rem; }
+            #click-overlay h1 { font-size: 1.8rem; }
+        }
+
+        /* Botón de audio */
+        #audio-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.5);
+            border: none;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            z-index: 30;
         }
     </style>
 </head>
 <body>
 
-    <canvas id="animation-canvas"></canvas>
+    <!-- El canvas 3D (reemplaza tu canvas 2D) -->
+    <div id="three-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;"></div>
     
     <audio id="myAudio" loop>
         <source src="https://a128-z3.zmdcdn.me/d5e48d317636af55834b87b0fd9fd5fe?authen=exp=1762399955~acl=/d5e48d317636af55834b87b0fd9fd5fe*~hmac=537e951475297463e4a86ebf0646086e" type="audio/mpeg">
         Tu navegador no soporta el audio.
     </audio>
+
+    <button id="audio-toggle">🔊</button>
 
     <div class="container" id="click-overlay">
         <h1>Toca para empezar</h1>
@@ -138,136 +127,101 @@
 MY ALEJ</div>
     </div>
 
+    <!-- Cargar Three.js desde CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // --- SECCIÓN 1: LÓGICA DE INICIO ---
+        // --- TRES.JS: EFECTO 3D ---
+        let scene, camera, renderer, particles;
+        let isThreeJsReady = false;
 
+        function initThreeJS() {
+            if (isThreeJsReady) return;
+            
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            
+            const container = document.getElementById('three-container');
+            container.innerHTML = '';
+            container.appendChild(renderer.domElement);
+
+            // Geometría de partículas (ahora son "corazones" estilizados como partículas rosas)
+            const particlesCount = 1500;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particlesCount * 3);
+            const colors = new Float32Array(particlesCount * 3);
+
+            for (let i = 0; i < particlesCount * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 20;     // x
+                positions[i + 1] = (Math.random() - 0.5) * 20; // y
+                positions[i + 2] = (Math.random() - 0.5) * 20; // z
+
+                // Color rosa suave
+                colors[i] = 1.0;     // r
+                colors[i + 1] = 0.4; // g
+                colors[i + 2] = 0.6; // b
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.1,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+            camera.position.z = 5;
+
+            isThreeJsReady = true;
+            animate3D();
+        }
+
+        function animate3D() {
+            if (!isThreeJsReady) return;
+            requestAnimationFrame(animate3D);
+            particles.rotation.x += 0.0005;
+            particles.rotation.y += 0.001;
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            if (!isThreeJsReady) return;
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- TU LÓGICA ORIGINAL ---
         const overlay = document.getElementById('click-overlay');
         const messageContent = document.getElementById('message-content');
         const audio = document.getElementById('myAudio');
-        const canvas = document.getElementById('animation-canvas');
-        const ctx = canvas.getContext('2d');
-
-        let hearts = [];
-        let particles = []; // NUEVO: Array para partículas
-        let canvasWidth, canvasHeight;
+        const audioToggle = document.getElementById('audio-toggle');
 
         overlay.addEventListener('click', () => {
-            audio.play();
-            overlay.style.display = 'none';
-            messageContent.style.display = 'flex';
-            startAnimations(); // Llama a la función que inicia TODO
+            audio.play().then(() => {
+                overlay.style.display = 'none';
+                messageContent.style.display = 'flex';
+                initThreeJS(); // Inicia el 3D SOLO después del clic
+            }).catch(e => console.log("Play no permitido:", e));
         });
 
-        // --- SECCIÓN 2: LÓGICA DE ANIMACIONES ---
+        audioToggle.addEventListener('click', () => {
+            audio.muted = !audio.muted;
+            audioToggle.textContent = audio.muted ? '🔇' : '🔊';
+        });
 
-        function resizeCanvas() {
-            canvasWidth = window.innerWidth;
-            canvasHeight = window.innerHeight;
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
-        }
-
-        // Función para dibujar un corazón (Corregida)
-        function drawHeart(x, y, size, color) {
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.moveTo(x + size / 2, y + size / 4);
-            ctx.bezierCurveTo(x + size / 2, y, x, y, x, y + size / 4);
-            ctx.bezierCurveTo(x, y + size / 2, x + size / 2, y + size * 0.75, x + size / 2, y + size);
-            ctx.bezierCurveTo(x + size / 2, y + size * 0.75, x + size, y + size / 2, x + size, y + size / 4);
-            ctx.bezierCurveTo(x + size, y, x + size / 2, y, x + size / 2, y + size / 4);
-            ctx.fill();
-            ctx.closePath();
-        }
-
-        // Clase para crear un Corazón (que cae)
-        class Heart {
-            constructor() {
-                this.x = Math.random() * canvasWidth;
-                this.y = Math.random() * -canvasHeight - 20;
-                this.size = Math.random() * 20 + 10;
-                this.speed = Math.random() * 3 + 1;
-                this.opacity = Math.random() * 0.5 + 0.3;
+        // Soporte para autoplay en algunos navegadores
+        document.body.addEventListener('click', () => {
+            if (overlay.style.display !== 'none') {
+                overlay.click();
             }
-            update() {
-                this.y += this.speed;
-                if (this.y > canvasHeight) {
-                    this.y = -this.size - 20;
-                    this.x = Math.random() * canvasWidth;
-                }
-            }
-            draw() {
-                drawHeart(this.x, this.y, this.size, `rgba(238, 102, 166, ${this.opacity})`);
-            }
-        }
-
-        // NUEVA CLASE: Partícula (que flota hacia arriba)
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvasWidth;
-                this.y = Math.random() * canvasHeight + canvasHeight; // Empieza abajo
-                this.size = Math.random() * 2 + 0.5; // Muy pequeñas
-                this.speedY = Math.random() * -1.5 - 0.5; // Velocidad hacia arriba
-                this.speedX = (Math.random() - 0.5) * 0.5; // Ligero movimiento lateral
-                this.opacity = Math.random() * 0.5 + 0.2; // Muy tenues
-            }
-            update() {
-                this.y += this.speedY;
-                this.x += this.speedX;
-                // Si se sale por arriba, resetea abajo
-                if (this.y < -this.size) {
-                    this.y = canvasHeight + this.size;
-                    this.x = Math.random() * canvasWidth;
-                }
-                // Si se sale por los lados, que reaparezca
-                if (this.x < -this.size) { this.x = canvasWidth + this.size; }
-                if (this.x > canvasWidth + this.size) { this.x = -this.size; }
-            }
-            draw() {
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.closePath();
-            }
-        }
-
-        // Bucle de animación (ahora anima corazones Y partículas)
-        function animate() {
-            ctx.clearRect(0, 0, canvasWidth, canvasHeight); 
-            
-            hearts.forEach(heart => {
-                heart.update();
-                heart.draw();
-            });
-
-            particles.forEach(particle => {
-                particle.update();
-                particle.draw();
-            });
-            
-            requestAnimationFrame(animate); // Llama al siguiente frame
-        }
-
-        // Función que se llama al hacer clic
-        function startAnimations() {
-            resizeCanvas(); 
-            if (hearts.length === 0) { 
-                // Crea 50 corazones
-                for (let i = 0; i < 50; i++) {
-                    hearts.push(new Heart());
-                }
-                // Crea 100 partículas
-                for (let i = 0; i < 100; i++) {
-                    particles.push(new Particle());
-                }
-            }
-            animate(); // Inicia la animación
-        }
-        
-        // Ajusta el canvas si la ventana cambia de tamaño
-        window.addEventListener('resize', resizeCanvas);
-
+        });
     </script>
 </body>
 </html>
