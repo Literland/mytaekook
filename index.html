@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Para Mi Amor - ALEJ</title>
+    <title>Para Mi Princesa - Nuestro Universo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+    
     <style>
         * {
             margin: 0;
@@ -16,765 +16,424 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --lila-pastel: #D8BFD8;
+            --celeste-bebe: #B5EAD7;
+            --rosa-bebe: #FFD1DC;
+            --lavanda: #E6E6FA;
+            --azul-cielo: #87CEEB;
+            --purple-bts: #8A2BE2;
+        }
+
         body, html {
             height: 100%;
             margin: 0;
             padding: 0;
-            background: #000000;
-            color: #FFF;
+            background: linear-gradient(135deg, var(--lila-pastel) 0%, var(--azul-cielo) 100%);
+            color: #5A4A6D;
             font-family: 'Mali', cursive;
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
         }
 
-        /* Canvas 3D con prioridad máxima */
-        #three-canvas {
+        /* Contenedor principal 3D */
+        .world {
             position: fixed;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
-            z-index: 0;
+            perspective: 1200px;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* Escenas 360° */
+        .scene {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            display: none;
+        }
+
+        .scene.active {
             display: block;
         }
 
-        /* Contenedores */
-        .container {
-            position: fixed;
-            top: 0;
-            left: 0;
+        /* Capas de profundidad para efecto 3D */
+        .layer {
+            position: absolute;
             width: 100%;
             height: 100%;
+            transform-style: preserve-3d;
+        }
+
+        .layer-1 { transform: translateZ(-200px) scale(1.4); }
+        .layer-2 { transform: translateZ(-100px) scale(1.2); }
+        .layer-3 { transform: translateZ(0px) scale(1); }
+        .layer-4 { transform: translateZ(100px) scale(0.8); }
+        .layer-5 { transform: translateZ(200px) scale(0.6); }
+
+        /* Pantalla de bienvenida - MÁS CÁLIDA */
+        #welcome-screen {
+            background: linear-gradient(135deg, var(--rosa-bebe) 0%, var(--lila-pastel) 50%, var(--celeste-bebe) 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            z-index: 10;
             padding: 20px;
-            pointer-events: none;
+            z-index: 1000;
         }
 
-        /* Permitir clicks solo en overlay */
-        #click-overlay {
-            background: rgba(0, 0, 0, 0.8);
+        .welcome-content h1 {
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            color: #6A5B7D;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5);
+            animation: float-heart 3s ease-in-out infinite;
+        }
+
+        .welcome-content p {
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            color: #7A6B8D;
+            margin: 10px 0;
+            line-height: 1.4;
+        }
+
+        .start-button {
+            background: linear-gradient(45deg, var(--purple-bts), var(--lila-pastel));
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            color: white;
+            font-size: 1.3rem;
+            font-family: 'Mali', cursive;
             cursor: pointer;
-            transition: all 0.5s ease;
-            pointer-events: auto;
+            margin-top: 30px;
+            box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+            transition: all 0.3s ease;
         }
 
-        #click-overlay h1 {
-            font-size: clamp(1.8rem, 7vw, 3.5rem);
-            color: #ff85b3;
-            margin-bottom: 15px;
-            animation: pulse 2s infinite ease-in-out;
-            text-shadow: 0 0 20px #ff6ba1;
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(138, 43, 226, 0.4);
         }
 
-        #click-overlay p {
-            font-size: clamp(0.9rem, 3.5vw, 1.3rem);
-            color: #f8b7d8;
-            margin: 8px 0;
+        /* Copos de nieve */
+        .snowflake {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: fall linear infinite;
         }
 
-        /* Mensaje principal */
-        #message-content {
-            display: none;
+        /* Corazones flotantes */
+        .floating-heart {
+            position: absolute;
+            font-size: 1.5rem;
+            opacity: 0.7;
+            animation: float-heart 4s ease-in-out infinite;
         }
 
-        .message {
-            font-size: clamp(2rem, 8vw, 4rem);
-            font-weight: 700;
-            color: #ff9ec5;
-            text-shadow: 
-                0 0 20px #ff6ba1,
-                0 0 40px #ff85b3,
-                0 0 60px #ff9ec5;
-            animation: 
-                glow 3s ease-in-out infinite alternate,
-                float 6s ease-in-out infinite;
-            line-height: 1.3;
-            text-align: center;
-            white-space: pre-wrap;
-        }
-
-        /* Botón de audio */
-        .btn-audio-toggle {
+        /* Botones de navegación */
+        .nav-button {
             position: fixed;
-            top: 15px;
-            right: 15px;
-            z-index: 100;
-            background: rgba(255, 158, 197, 0.4);
-            border: 2px solid #ff9ec5;
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid var(--lila-pastel);
             border-radius: 50%;
             width: 50px;
             height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            color: #fff;
-            font-size: 1.3rem;
-            display: none;
+            z-index: 100;
+            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 20px rgba(255, 158, 197, 0.6);
-            pointer-events: auto;
         }
 
-        /* Efecto de palabras al tocar - MÁS VISIBLE */
-        .click-word {
-            position: absolute;
-            font-size: 2rem;
-            font-weight: bold;
-            color: #ff9ec5;
-            pointer-events: none;
-            z-index: 5;
-            animation: wordFloat 4s ease-out forwards;
-            text-shadow: 
-                0 0 10px currentColor,
-                0 0 20px currentColor;
-            font-family: 'Mali', cursive;
-            filter: drop-shadow(0 0 8px rgba(255, 158, 197, 0.8));
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.1);
         }
 
-        /* Loading */
-        .loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ff9ec5;
-            font-size: 1.3rem;
-            z-index: 20;
-            display: none;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 20px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
+        .nav-prev { left: 20px; top: 50%; }
+        .nav-next { right: 20px; top: 50%; }
+        .nav-audio { top: 20px; right: 20px; }
+
+        /* Animaciones */
+        @keyframes float-heart {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
         }
 
-        /* Indicador de movimiento */
-        .move-indicator {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #f8b7d8;
-            font-size: 0.9rem;
-            z-index: 10;
-            display: none;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px 20px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            pointer-events: none;
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(360deg); }
         }
 
-        /* Animaciones mejoradas */
         @keyframes glow {
-            0%, 100% {
-                text-shadow: 
-                    0 0 20px #ff6ba1,
-                    0 0 40px #ff85b3,
-                    0 0 60px #ff9ec5;
-            }
-            50% {
-                text-shadow: 
-                    0 0 30px #ff6ba1,
-                    0 0 60px #ff85b3,
-                    0 0 90px #ff9ec5;
-            }
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(3deg); }
+        /* Efectos de partículas */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 0.8; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.05); }
-        }
-
-        @keyframes wordFloat {
-            0% {
-                opacity: 0;
-                transform: translateY(0) scale(0.5) rotate(-15deg);
-            }
-            20% {
-                opacity: 1;
-                transform: translateY(-40px) scale(1.3) rotate(5deg);
-            }
-            80% {
-                opacity: 0.8;
-                transform: translateY(-120px) scale(1) rotate(0deg);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(-180px) scale(0.8) rotate(10deg);
-            }
-        }
-
-        /* Chrome mobile optimizations */
+        /* Responsive */
         @media (max-width: 768px) {
-            .btn-audio-toggle {
+            .nav-button {
                 width: 45px;
                 height: 45px;
-                font-size: 1.1rem;
             }
-            
-            .message {
-                font-size: clamp(1.8rem, 7vw, 3.2rem);
-            }
-
-            .click-word {
-                font-size: 1.8rem;
-            }
-
-            .move-indicator {
-                display: block;
-            }
+            .nav-prev { left: 10px; }
+            .nav-next { right: 10px; }
         }
     </style>
 </head>
 <body>
-    <!-- Canvas para Three.js -->
-    <canvas id="three-canvas"></canvas>
-
-    <!-- Audio -->
-    <audio id="myAudio" loop>
-        <source src="https://a128-z3.zmdcdn.me/d5e48d317636af55834b87b0fd9fd5fe?authen=exp=1762399955~acl=/d5e48d317636af55834b87b0fd9fd5fe*~hmac=537e951475297463e4a86ebf0646086e" type="audio/mpeg">
-    </audio>
-
-    <!-- Loading -->
-    <div class="loading" id="loading">
-        <i class="fas fa-heart fa-beat" style="color: #ff6ba1; margin-right: 10px;"></i>
-        <div>Cargando experiencia 3D...</div>
-        <div style="font-size: 0.9rem; margin-top: 10px; color: #f8b7d8;">
-            Activando efectos especiales ✨
-        </div>
-    </div>
-
-    <!-- Indicador de movimiento -->
-    <div class="move-indicator" id="move-indicator">
-        👆 Mueve el dedo para explorar el espacio 3D
-    </div>
-
-    <!-- Botón de audio -->
-    <button id="toggle-audio" class="btn-audio-toggle">
-        <i id="audio-icon" class="fas fa-volume-high"></i>
-    </button>
-
-    <!-- Pantalla inicial -->
-    <div class="container" id="click-overlay">
-        <div>
-            <h1>💖 Universo 3D de Amor 💖</h1>
-            <p>Toca para activar la experiencia inmersiva</p>
-            <p style="font-size: 1.1rem; margin-top: 25px;">
-                Para mi ALEJ 💕
-            </p>
-            <div style="margin-top: 30px; font-size: 0.8rem; color: #d8bfd8;">
-                🚀 Efectos 3D intensos activados
+    <!-- Mundo 3D -->
+    <div class="world" id="world">
+        <!-- Pantalla de bienvenida -->
+        <div id="welcome-screen" class="scene active">
+            <div class="welcome-content">
+                <h1>💜 Hola Mi Princesa 💜</h1>
+                <p>Este mundo mágico fue creado</p>
+                <p>especialmente para ti</p>
+                <p style="margin-top: 20px; font-size: 1.1rem;">
+                    Donde nuestro amor brilla más que las estrellas
+                </p>
+                <button class="start-button" onclick="startExperience()">
+                    💖 Entrar a Nuestro Universo
+                </button>
+                <div style="margin-top: 30px; font-size: 0.9rem; color: #8A7B9D;">
+                    Con todo mi amor... para mi ALEJ 💕
+                </div>
             </div>
         </div>
+
+        <!-- Escenas 360° (se agregarán dinámicamente) -->
+        <div id="scene-container"></div>
     </div>
 
-    <!-- Mensaje principal -->
-    <div class="container" id="message-content">
-        <div class="message">I LOVE YOU SO MUCH\nMY ALEJ</div>
-    </div>
+    <!-- Canvas para efectos de partículas -->
+    <canvas id="particles-canvas"></canvas>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Audio -->
+    <audio id="background-music" loop>
+        <source src="https://audio.jukehost.co.uk/s9fVfq0d9Q2p5l3qK3U4c8Q9p8J3y2a" type="audio/mpeg">
+    </audio>
+
+    <!-- Botones de navegación -->
+    <button class="nav-button nav-audio" onclick="toggleMusic()">
+        <i id="music-icon" class="fas fa-volume-up"></i>
+    </button>
+    <button class="nav-button nav-prev" onclick="previousScene()">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <button class="nav-button nav-next" onclick="nextScene()">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+
     <script>
-        // ========== CONFIGURACIÓN MEJORADA PARA CHROME MOBILE ==========
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-        
-        console.log(`Navegador: ${isChrome ? 'Chrome' : 'Otro'} | Dispositivo: ${isMobile ? 'Móvil' : 'Desktop'}`);
-
-        // Elementos DOM
-        const overlay = document.getElementById('click-overlay');
-        const messageContent = document.getElementById('message-content');
-        const audio = document.getElementById('myAudio');
-        const toggleAudioBtn = document.getElementById('toggle-audio');
-        const audioIcon = document.getElementById('audio-icon');
-        const loading = document.getElementById('loading');
-        const moveIndicator = document.getElementById('move-indicator');
-
-        // CONFIGURACIÓN MEJORADA - EFECTOS MÁS INTENSOS
-        const config = {
-            mobile: {
-                particleCount: 400,  // Más partículas
-                heartCount: 20,      // Más corazones
-                textCount: 12,       // Más textos
-                cameraSensitivity: 0.002,  // Más sensible
-                movementIntensity: 120,     // Movimiento más exagerado
-                rotationIntensity: 0.1,     // Rotación más notable
-                scaleIntensity: 0.4,        // Escala más dramática
-                fog: false,          // Sin niebla para mejor rendimiento
-                shadows: false       // Sin sombras para mejor FPS
+        // ========== CONFIGURACIÓN INICIAL ==========
+        const scenes = [
+            {
+                id: 'snow-garden',
+                name: 'Jardín de Nieve Taekook',
+                background: 'linear-gradient(135deg, #B5EAD7 0%, #D8BFD8 50%, #E6E6FA 100%)',
+                music: 'snow-flower',
+                elements: []
             },
-            desktop: {
-                particleCount: 1000,
-                heartCount: 35,
-                textCount: 18,
-                cameraSensitivity: 0.0015,
-                movementIntensity: 150,
-                rotationIntensity: 0.08,
-                scaleIntensity: 0.3,
-                fog: true,
-                shadows: true
+            {
+                id: 'mikrokosmos',
+                name: 'Nuestro Mikrokosmos',
+                background: 'linear-gradient(135deg, #6A5B7D 0%, #8A7B9D 50%, #B5EAD7 100%)',
+                music: 'mikrokosmos',
+                elements: []
+            },
+            {
+                id: 'taekook-home',
+                name: 'Nuestro Hogar Taekook',
+                background: 'linear-gradient(135deg, #FFD1DC 0%, #E6E6FA 50%, #87CEEB 100%)',
+                music: 'home',
+                elements: []
             }
-        };
-
-        const currentConfig = isMobile ? config.mobile : config.desktop;
-
-        // Variables globales
-        let isPlaying = false;
-        let isInitialized = false;
-        let scene, camera, renderer;
-        let hearts3D = [], floatingTexts = [];
-        let mouseX = 0, mouseY = 0;
-        let windowHalfX = window.innerWidth / 2;
-        let windowHalfY = window.innerHeight / 2;
-
-        // Palabras para efecto de touch - MÁS VARIEDAD
-        const clickWords = [
-            "TE AMO", "I LOVE YOU", "MI AMOR", "FOREVER", "SIEMPRE",
-            "MY HEART", "BESOS", "ABRAZOS", "ERES MÍA", "MI TODO",
-            "SOULMATE", "PASIÓN", "ROMANCE", "ETERNIDAD", "INFINITO"
         ];
 
-        // Colores más vibrantes
-        const colors = [
-            '#FF6BA1', '#FF85B3', '#FF9EC5', '#FFB7C5', '#FFCCD5',
-            '#FF6B8B', '#FF85A1', '#FF9EB7', '#FFB7CD', '#FFCCE0'
-        ];
+        let currentSceneIndex = 0;
+        let isMusicPlaying = false;
+        let isExperienceStarted = false;
 
-        // ========== INICIALIZACIÓN MEJORADA ==========
+        // ========== INICIALIZACIÓN ==========
         function init() {
-            if (isInitialized) return;
-            
-            console.log("Iniciando experiencia 3D intensa...");
-            isInitialized = true;
-
-            loading.style.display = 'block';
-            loading.innerHTML = `
-                <i class="fas fa-heart fa-beat" style="color: #ff6ba1; margin-right: 10px;"></i>
-                <div>Activando mundo 3D...</div>
-                <div style="font-size: 0.9rem; margin-top: 10px; color: #f8b7d8;">
-                    ${isMobile ? '🎮 Efectos móvil intensos' : '✨ Experiencia completa 3D'}
-                </div>
-            `;
-            
-            // Forzar limpieza de caché de WebGL
-            if (isChrome && isMobile) {
-                console.log("Optimizando para Chrome Mobile...");
-            }
-            
-            initThreeJS();
-            playAudio();
+            createSnowflakes();
+            createFloatingHearts();
+            initParticles();
         }
 
-        function playAudio() {
+        function startExperience() {
+            if (isExperienceStarted) return;
+            isExperienceStarted = true;
+            
+            document.getElementById('welcome-screen').classList.remove('active');
+            loadScene(0);
+            playMusic();
+        }
+
+        // ========== SISTEMA DE ESCENAS 360° ==========
+        function loadScene(index) {
+            currentSceneIndex = index;
+            const scene = scenes[index];
+            
+            // Aquí cargaremos la escena 360° con todos los elementos
+            console.log(`Cargando escena: ${scene.name}`);
+            
+            // Efecto de transición
+            document.getElementById('world').style.transform = 'rotateY(10deg)';
+            setTimeout(() => {
+                document.getElementById('world').style.transform = 'rotateY(0deg)';
+            }, 500);
+        }
+
+        function nextScene() {
+            const nextIndex = (currentSceneIndex + 1) % scenes.length;
+            loadScene(nextIndex);
+        }
+
+        function previousScene() {
+            const prevIndex = (currentSceneIndex - 1 + scenes.length) % scenes.length;
+            loadScene(prevIndex);
+        }
+
+        // ========== EFECTOS VISUALES ==========
+        function createSnowflakes() {
+            const container = document.body;
+            for (let i = 0; i < 50; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                snowflake.style.left = Math.random() * 100 + 'vw';
+                snowflake.style.width = Math.random() * 5 + 2 + 'px';
+                snowflake.style.height = snowflake.style.width;
+                snowflake.style.animationDuration = Math.random() * 3 + 2 + 's';
+                snowflake.style.animationDelay = Math.random() * 5 + 's';
+                snowflake.style.opacity = Math.random() * 0.6 + 0.3;
+                container.appendChild(snowflake);
+            }
+        }
+
+        function createFloatingHearts() {
+            const container = document.body;
+            const heartMessages = ['💖', '💜', '🌸', '✨', '🥰'];
+            
+            for (let i = 0; i < 20; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'floating-heart';
+                heart.textContent = heartMessages[Math.floor(Math.random() * heartMessages.length)];
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.top = Math.random() * 100 + 'vh';
+                heart.style.animationDelay = Math.random() * 2 + 's';
+                heart.style.fontSize = (Math.random() * 0.8 + 1.2) + 'rem';
+                container.appendChild(heart);
+            }
+        }
+
+        function initParticles() {
+            const canvas = document.getElementById('particles-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+        }
+
+        // ========== SISTEMA DE MÚSICA ==========
+        function playMusic() {
+            const audio = document.getElementById('background-music');
             audio.play().then(() => {
-                console.log("Audio activado");
-                completeInitialization();
+                isMusicPlaying = true;
+                updateMusicIcon();
             }).catch(error => {
-                console.log("Audio requiere interacción");
-                completeInitialization();
+                console.log('La música requiere interacción del usuario');
             });
         }
 
-        function completeInitialization() {
-            loading.style.display = 'none';
-            overlay.style.display = 'none';
-            messageContent.style.display = 'flex';
-            toggleAudioBtn.style.display = 'block';
-            
-            if (isMobile) {
-                moveIndicator.style.display = 'block';
-                setTimeout(() => {
-                    moveIndicator.style.display = 'none';
-                }, 6000);
-            }
-            
-            isPlaying = true;
-            startTypewriter();
-            
-            // Efecto inicial dramático
-            setTimeout(() => {
-                hearts3D.forEach((heart, index) => {
-                    heart.scale.setScalar(1.5);
-                    setTimeout(() => {
-                        heart.scale.setScalar(1);
-                    }, 500);
-                });
-            }, 1000);
-        }
-
-        // ========== EFECTO DE PALABRAS MEJORADO ==========
-        function createClickWord(x, y) {
-            const word = document.createElement('div');
-            word.className = 'click-word';
-            word.textContent = clickWords[Math.floor(Math.random() * clickWords.length)];
-            word.style.left = x + 'px';
-            word.style.top = y + 'px';
-            word.style.color = colors[Math.floor(Math.random() * colors.length)];
-            word.style.fontSize = (Math.random() * 0.5 + 1.5) + 'rem';
-            
-            document.body.appendChild(word);
-            
-            setTimeout(() => {
-                if (word.parentNode) {
-                    word.parentNode.removeChild(word);
-                }
-            }, 4000);
-        }
-
-        document.addEventListener('click', (e) => {
-            if (isInitialized) {
-                createClickWord(e.clientX, e.clientY);
-            }
-        });
-
-        document.addEventListener('touchstart', (e) => {
-            if (isInitialized && e.touches.length === 1) {
-                e.preventDefault();
-                createClickWord(e.touches[0].clientX, e.touches[0].clientY);
-            }
-        }, { passive: false });
-
-        // ========== THREE.JS CON EFECTOS MÁS INTENSOS ==========
-        function initThreeJS() {
-            try {
-                // Escena
-                scene = new THREE.Scene();
-                scene.background = new THREE.Color(0x000011); // Fondo azul oscuro para contraste
-                
-                if (currentConfig.fog) {
-                    scene.fog = new THREE.Fog(0x000022, 50, 300);
-                }
-
-                // Cámara con campo de visión más amplio
-                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                camera.position.set(0, 0, 60);
-
-                // Renderer con configuración agresiva para Chrome Mobile
-                renderer = new THREE.WebGLRenderer({ 
-                    canvas: document.getElementById('three-canvas'),
-                    alpha: false, // Sin alpha para mejor rendimiento
-                    antialias: false, // Sin antialiasing
-                    powerPreference: "high-performance",
-                    precision: isMobile ? "mediump" : "highp"
-                });
-                
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                renderer.setPixelRatio(isMobile ? 1 : window.devicePixelRatio); // Pixel ratio fijo en móvil
-                
-                if (currentConfig.shadows) {
-                    renderer.shadowMap.enabled = true;
-                    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-                }
-
-                // Luces más intensas
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-                scene.add(ambientLight);
-
-                const directionalLight1 = new THREE.DirectionalLight(0xff6ba1, 1.2);
-                directionalLight1.position.set(10, 10, 10);
-                if (currentConfig.shadows) {
-                    directionalLight1.castShadow = true;
-                }
-                scene.add(directionalLight1);
-
-                const directionalLight2 = new THREE.DirectionalLight(0x85b3ff, 0.8);
-                directionalLight2.position.set(-10, 5, 5);
-                scene.add(directionalLight2);
-
-                const pointLight = new THREE.PointLight(0xff9ec5, 0.8, 100);
-                pointLight.position.set(0, 0, 30);
-                scene.add(pointLight);
-
-                // Crear elementos 3D
-                createHearts3D();
-                createFloatingTexts3D();
-                createParticleField();
-
-                // Eventos de movimiento
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('touchmove', onTouchMove, { passive: true });
-
-                // Animación
-                animateThreeJS();
-
-                window.addEventListener('resize', onWindowResize);
-
-                console.log("Three.js inicializado con efectos intensos");
-
-            } catch (error) {
-                console.error("Error en Three.js:", error);
-                loading.innerHTML = `
-                    <div style="color: #ff6ba1; margin-bottom: 15px;">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div>Modo compatibilidad activado</div>
-                    <div style="font-size: 0.9rem; margin-top: 10px; color: #f8b7d8;">
-                        Los efectos 3D están limitados pero el amor es infinito 💖
-                    </div>
-                `;
-                completeInitialization();
-            }
-        }
-
-        function createHearts3D() {
-            // Geometría de corazón más definida
-            const heartShape = new THREE.Shape();
-            heartShape.moveTo(0, 0);
-            for (let i = 0; i < 25; i++) {
-                const t = i / 25 * Math.PI * 2;
-                const px = 16 * Math.pow(Math.sin(t), 3);
-                const py = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
-                if (i === 0) {
-                    heartShape.moveTo(px, py);
-                } else {
-                    heartShape.lineTo(px, py);
-                }
-            }
-
-            const extrudeSettings = {
-                depth: 1.2,
-                bevelEnabled: true,
-                bevelThickness: 0.2,
-                bevelSize: 0.15,
-                bevelSegments: 6
-            };
-
-            for (let i = 0; i < currentConfig.heartCount; i++) {
-                const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
-                const material = new THREE.MeshPhongMaterial({
-                    color: new THREE.Color(colors[Math.floor(Math.random() * colors.length)]),
-                    transparent: true,
-                    opacity: 0.9,
-                    shininess: 100,
-                    specular: 0xffffff,
-                    emissive: new THREE.Color(colors[Math.floor(Math.random() * colors.length)]),
-                    emissiveIntensity: 0.3
-                });
-
-                const heart = new THREE.Mesh(geometry, material);
-                
-                // Posiciones más cercanas a la cámara
-                const radius = 30 + Math.random() * 50;
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos(2 * Math.random() - 1);
-                
-                heart.position.x = radius * Math.sin(phi) * Math.cos(theta);
-                heart.position.y = radius * Math.sin(phi) * Math.sin(theta);
-                heart.position.z = radius * Math.cos(phi);
-                
-                // Rotaciones más extremas
-                heart.rotation.x = Math.random() * Math.PI * 2;
-                heart.rotation.y = Math.random() * Math.PI * 2;
-                heart.rotation.z = Math.random() * Math.PI * 2;
-                
-                heart.userData = {
-                    originalPosition: heart.position.clone(),
-                    speed: Math.random() * 0.01 + 0.005,
-                    angle: Math.random() * Math.PI * 2,
-                    pulseSpeed: Math.random() * 0.02 + 0.01,
-                    rotationSpeed: (Math.random() - 0.5) * 0.02
-                };
-
-                if (currentConfig.shadows) {
-                    heart.castShadow = true;
-                    heart.receiveShadow = true;
-                }
-
-                scene.add(heart);
-                hearts3D.push(heart);
-            }
-        }
-
-        function createFloatingTexts3D() {
-            const words3D = ["TE", "AMO", "LOVE", "YOU", "FOREVER", "ALWAYS", "MI", "AMOR", "HEART", "SOUL"];
-
-            for (let i = 0; i < currentConfig.textCount; i++) {
-                // Usar octaedros en lugar de esferas para más definición
-                const geometry = new THREE.OctahedronGeometry(2, 1);
-                const material = new THREE.MeshPhongMaterial({
-                    color: new THREE.Color(colors[i % colors.length]),
-                    transparent: true,
-                    opacity: 0.8,
-                    emissive: new THREE.Color(colors[i % colors.length]),
-                    emissiveIntensity: 0.4
-                });
-
-                const textMesh = new THREE.Mesh(geometry, material);
-                
-                const radius = 40 + Math.random() * 70;
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos(2 * Math.random() - 1);
-                
-                textMesh.position.x = radius * Math.sin(phi) * Math.cos(theta);
-                textMesh.position.y = radius * Math.sin(phi) * Math.sin(theta);
-                textMesh.position.z = radius * Math.cos(phi);
-                
-                textMesh.userData = {
-                    originalPosition: textMesh.position.clone(),
-                    speed: Math.random() * 0.008 + 0.003,
-                    rotationSpeed: (Math.random() - 0.5) * 0.015
-                };
-
-                scene.add(textMesh);
-                floatingTexts.push(textMesh);
-            }
-        }
-
-        function createParticleField() {
-            const geometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(currentConfig.particleCount * 3);
-            const colors = new Float32Array(currentConfig.particleCount * 3);
-
-            for (let i = 0; i < currentConfig.particleCount * 3; i += 3) {
-                positions[i] = (Math.random() - 0.5) * 500;
-                positions[i + 1] = (Math.random() - 0.5) * 500;
-                positions[i + 2] = (Math.random() - 0.5) * 500;
-
-                const color = new THREE.Color(colors[Math.floor(Math.random() * colors.length)]);
-                colors[i] = color.r;
-                colors[i + 1] = color.g;
-                colors[i + 2] = color.b;
-            }
-
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-            const material = new THREE.PointsMaterial({
-                size: 3,
-                vertexColors: true,
-                transparent: true,
-                opacity: 0.7,
-                sizeAttenuation: true
-            });
-
-            const particleSystem = new THREE.Points(geometry, material);
-            scene.add(particleSystem);
-        }
-
-        function onMouseMove(event) {
-            mouseX = (event.clientX - windowHalfX) * currentConfig.cameraSensitivity;
-            mouseY = (event.clientY - windowHalfY) * currentConfig.cameraSensitivity;
-        }
-
-        function onTouchMove(event) {
-            if (event.touches.length === 1) {
-                mouseX = (event.touches[0].clientX - windowHalfX) * currentConfig.cameraSensitivity;
-                mouseY = (event.touches[0].clientY - windowHalfY) * currentConfig.cameraSensitivity;
-            }
-        }
-
-        function animateThreeJS() {
-            requestAnimationFrame(animateThreeJS);
-
-            const time = Date.now() * 0.001;
-
-            // MOVIMIENTO DE CÁMARA MÁS EXAGERADO
-            camera.position.x += (mouseX * currentConfig.movementIntensity - camera.position.x) * 0.05;
-            camera.position.y += (-mouseY * currentConfig.movementIntensity - camera.position.y) * 0.05;
-            
-            // ROTACIÓN DE CÁMARA MÁS NOTABLE
-            camera.rotation.z = mouseX * currentConfig.rotationIntensity;
-            camera.rotation.x = mouseY * currentConfig.rotationIntensity * 0.7;
-
-            camera.lookAt(scene.position);
-
-            // ANIMACIÓN DE CORAZONES MÁS DRAMÁTICA
-            hearts3D.forEach((heart, index) => {
-                heart.rotation.x += heart.userData.rotationSpeed;
-                heart.rotation.y += 0.015;
-                heart.rotation.z += heart.userData.rotationSpeed * 0.5;
-                
-                // Movimiento orbital más amplio
-                heart.userData.angle += heart.userData.speed;
-                heart.position.x = heart.userData.originalPosition.x + 
-                    Math.sin(time * 1.5 + heart.userData.angle) * 8;
-                heart.position.y = heart.userData.originalPosition.y + 
-                    Math.cos(time + heart.userData.angle) * 6;
-                
-                // Pulsación más exagerada
-                const pulse = Math.sin(time * heart.userData.pulseSpeed + index) * 
-                    currentConfig.scaleIntensity + 1;
-                heart.scale.setScalar(pulse);
-            });
-
-            // ANIMACIÓN DE TEXTOS MÁS ACTIVA
-            floatingTexts.forEach((text, index) => {
-                text.rotation.x += text.userData.rotationSpeed;
-                text.rotation.y += 0.01;
-                text.rotation.z += text.userData.rotationSpeed * 0.3;
-                
-                text.position.y = text.userData.originalPosition.y + 
-                    Math.sin(time * 0.8 + index) * 5;
-                text.position.x = text.userData.originalPosition.x + 
-                    Math.cos(time * 0.5 + index) * 3;
-            });
-
-            renderer.render(scene, camera);
-        }
-
-        function onWindowResize() {
-            windowHalfX = window.innerWidth / 2;
-            windowHalfY = window.innerHeight / 2;
-
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        function startTypewriter() {
-            const message = document.querySelector('.message');
-            const originalText = message.textContent;
-            message.textContent = '';
-            
-            let i = 0;
-            const typeWriter = () => {
-                if (i < originalText.length) {
-                    if (originalText.charAt(i) === '\\' && originalText.charAt(i + 1) === 'n') {
-                        message.textContent += '\n';
-                        i++;
-                    } else {
-                        message.textContent += originalText.charAt(i);
-                    }
-                    i++;
-                    setTimeout(typeWriter, 100);
-                }
-            };
-            setTimeout(typeWriter, 800);
-        }
-
-        // Event listeners
-        overlay.addEventListener('click', init);
-        overlay.addEventListener('touchend', init, { passive: false });
-
-        toggleAudioBtn.addEventListener('click', toggleAudio);
-        toggleAudioBtn.addEventListener('touchstart', toggleAudio, { passive: true });
-
-        function toggleAudio() {
-            if (isPlaying) {
+        function toggleMusic() {
+            const audio = document.getElementById('background-music');
+            if (isMusicPlaying) {
                 audio.pause();
-                audioIcon.className = 'fas fa-volume-mute';
             } else {
-                audio.play().catch(e => {
-                    console.log('Error al reproducir audio:', e);
-                });
-                audioIcon.className = 'fas fa-volume-high';
+                audio.play();
             }
-            isPlaying = !isPlaying;
+            isMusicPlaying = !isMusicPlaying;
+            updateMusicIcon();
         }
 
-        onWindowResize();
+        function updateMusicIcon() {
+            const icon = document.getElementById('music-icon');
+            icon.className = isMusicPlaying ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+        }
+
+        // ========== CONTROL 360° ==========
+        let isDragging = false;
+        let startX, startY;
+        let rotationY = 0, rotationX = 0;
+
+        document.addEventListener('mousedown', startDrag);
+        document.addEventListener('touchstart', startDrag);
+
+        function startDrag(e) {
+            if (!isExperienceStarted) return;
+            
+            isDragging = true;
+            startX = e.clientX || e.touches[0].clientX;
+            startY = e.clientY || e.touches[0].clientY;
+        }
+
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('touchmove', drag);
+
+        function drag(e) {
+            if (!isDragging || !isExperienceStarted) return;
+            
+            const currentX = e.clientX || e.touches[0].clientX;
+            const currentY = e.clientY || e.touches[0].clientY;
+            
+            const deltaX = currentX - startX;
+            const deltaY = currentY - startY;
+            
+            rotationY += deltaX * 0.5;
+            rotationX += deltaY * 0.3;
+            
+            document.getElementById('world').style.transform = 
+                `rotateY(${rotationY}deg) rotateX(${rotationX}deg)`;
+            
+            startX = currentX;
+            startY = currentY;
+        }
+
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchend', endDrag);
+
+        function endDrag() {
+            isDragging = false;
+        }
+
+        // ========== INICIALIZAR ==========
+        window.addEventListener('load', init);
     </script>
 </body>
 </html>
