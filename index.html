@@ -16,6 +16,16 @@
             overflow: hidden; /* Evita barras de scroll */
         }
 
+        /* Canvas para la lluvia de corazones */
+        #heart-rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Detrás del mensaje */
+        }
+
         /* Contenedor principal centrado */
         .container {
             display: flex;
@@ -52,7 +62,7 @@
         /* 2. Contenido del Mensaje (oculto al inicio) */
         #message-content {
             display: none; /* Oculto por defecto */
-            z-index: 5;
+            z-index: 5; /* Encima de la lluvia de corazones */
         }
 
         /* El Mensaje principal */
@@ -94,6 +104,8 @@
     </style>
 </head>
 <body>
+
+    <canvas id="heart-rain"></canvas>
     
     <audio id="myAudio" loop>
         <source src="https://a128-z3.zmdcdn.me/d5e48d317636af55834b87b0fd9fd5fe?authen=exp=1762399955~acl=/d5e48d317636af55834b87b0fd9fd5fe*~hmac=537e951475297463e4a86ebf0646086e" type="audio/mpeg">
@@ -111,6 +123,8 @@ MY ALEJ</div>
     </div>
 
     <script>
+        // --- SECCIÓN 1: LÓGICA DE INICIO ---
+
         const overlay = document.getElementById('click-overlay');
         const messageContent = document.getElementById('message-content');
         const audio = document.getElementById('myAudio');
@@ -124,8 +138,92 @@ MY ALEJ</div>
 
             // 3. Muestra el mensaje brillante
             messageContent.style.display = 'flex';
+            
+            // 4. Inicia la lluvia de corazones
+            startHeartRain();
         });
-    </script>
 
+
+        // --- SECCIÓN 2: LÓGICA DE LLUVIA DE CORAZONES ---
+
+        const canvas = document.getElementById('heart-rain');
+        const ctx = canvas.getContext('2d');
+        let hearts = [];
+        let canvasWidth, canvasHeight;
+
+        function resizeCanvas() {
+            canvasWidth = window.innerWidth;
+            canvasHeight = window.innerHeight;
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+        }
+
+        // Función para dibujar un corazón
+        function drawHeart(x, y, size, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(x, y + size / 4);
+            ctx.quadraticCurveTo(x, y, x + size / 4, y);
+            ctx.quadraticCurveTo(x + size / 2, y, x + size / 2, y + size / 4);
+            ctx.quadraticCurveTo(x + size / 2, y, x + (size * 3) / 4, y);
+            ctx.quadraticCurveTo(x + size, y, x + size, y + size / 4);
+            ctx.quadraticCurveTo(x + size, y + size / 2, x + (size * 3) / 4, y + (size * 3) / 4);
+            ctx.lineTo(x + size / 2, y + size);
+            ctx.lineTo(x + size / 4, y + (size * 3) / 4);
+            ctx.quadraticCurveTo(x, y + size / 2, x, y + size / 4);
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        // Clase para crear un Corazón
+        class Heart {
+            constructor() {
+                this.x = Math.random() * canvasWidth;
+                this.y = Math.random() * -canvasHeight - 20; // Empieza fuera de la pantalla
+                this.size = Math.random() * 20 + 10; // Tamaño entre 10 y 30
+                this.speed = Math.random() * 3 + 1;   // Velocidad entre 1 y 4
+                this.opacity = Math.random() * 0.5 + 0.3; // Opacidad entre 0.3 y 0.8
+            }
+
+            // Mueve el corazón
+            update() {
+                this.y += this.speed;
+                // Si sale de la pantalla, lo resetea arriba
+                if (this.y > canvasHeight + this.size) {
+                    this.y = -this.size - 20;
+                    this.x = Math.random() * canvasWidth;
+                }
+            }
+
+            // Dibuja el corazón
+            draw() {
+                drawHeart(this.x, this.y, this.size, `rgba(238, 102, 166, ${this.opacity})`);
+            }
+        }
+
+        // Bucle de animación
+        function animate() {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight); // Limpia el canvas
+            hearts.forEach(heart => {
+                heart.update();
+                heart.draw();
+            });
+            requestAnimationFrame(animate); // Llama al siguiente frame
+        }
+
+        // Función que se llama al hacer clic
+        function startHeartRain() {
+            resizeCanvas();
+            // Crea los corazones
+            for (let i = 0; i < 50; i++) {
+                hearts.push(new Heart());
+            }
+            animate(); // Inicia la animación
+        }
+        
+        // Ajusta el canvas si la ventana cambia de tamaño
+        window.addEventListener('resize', resizeCanvas);
+
+    </script>
 </body>
 </html>
