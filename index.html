@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
         /* Estilos base */
@@ -18,6 +19,26 @@
             color: #FFF;
             font-family: 'Mali', 'Courier New', monospace;
             overflow: hidden;
+        }
+
+        /* Canvas para las animaciones */
+        #animation-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Canvas para el efecto 3D */
+        #three-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
         }
 
         /* Contenedor principal centrado */
@@ -32,12 +53,12 @@
             position: absolute;
             top: 0;
             left: 0;
-            z-index: 10;
         }
 
+        /* 1. Pantalla de "Clic para empezar" */
         #click-overlay {
             cursor: pointer;
-            z-index: 20;
+            z-index: 10;
         }
         
         #click-overlay h1 {
@@ -52,24 +73,76 @@
             color: #aaa;
         }
 
+        /* 2. Contenido del Mensaje (oculto al inicio) */
         #message-content {
             display: none;
-            z-index: 15;
+            z-index: 5;
         }
 
+        /* El Mensaje principal */
         .message {
             font-size: 5rem;
             font-weight: bold;
             color: #EE66A6;
             text-shadow: 0 0 10px #EE66A6, 0 0 20px #EE66A6, 0 0 30px #f7a;
             animation: glow 1.5s infinite alternate, 
-                       breath 4s infinite alternate ease-in-out;
+                         breath 4s infinite alternate ease-in-out;
             white-space: pre-wrap;
         }
 
+        /* Botón de control de audio */
+        .btn-audio-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            color: white;
+            font-size: 1.2rem;
+            display: none;
+        }
+
+        .btn-audio-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* Palabras flotantes estilo LoveLoom */
+        .floating-words {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        .floating-word {
+            position: absolute;
+            font-size: 1.2rem;
+            color: #EE66A6;
+            font-weight: 600;
+            opacity: 0;
+            text-shadow: 0 0 8px rgba(238, 102, 166, 0.5);
+            animation: floatWord 15s infinite linear;
+        }
+
+        /* Animaciones */
         @keyframes glow {
-            from { text-shadow: 0 0 10px #EE66A6, 0 0 20px #EE66A6, 0 0 30px #f7a; }
-            to { text-shadow: 0 0 20px #EE66A6, 0 0 30px #f7a, 0 0 40px #f7a; }
+            from {
+                text-shadow: 0 0 10px #EE66A6, 0 0 20px #EE66A6, 0 0 30px #f7a;
+            }
+            to {
+                text-shadow: 0 0 20px #EE66A6, 0 0 30px #f7a, 0 0 40px #f7a;
+            }
         }
 
         @keyframes breath {
@@ -83,37 +156,53 @@
             100% { opacity: 0.7; }
         }
 
-        @media (max-width: 600px) {
-            .message { font-size: 3rem; }
-            #click-overlay h1 { font-size: 1.8rem; }
+        @keyframes floatWord {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
         }
 
-        #audio-toggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.5);
-            border: none;
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.2rem;
-            z-index: 30;
+        /* Para que se vea bien en celulares */
+        @media (max-width: 600px) {
+            .message {
+                font-size: 3rem;
+            }
+            #click-overlay h1 {
+                font-size: 1.8rem;
+            }
+            .floating-word {
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div id="three-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;"></div>
+    <canvas id="three-canvas"></canvas>
+    <canvas id="animation-canvas"></canvas>
     
     <audio id="myAudio" loop>
         <source src="https://a128-z3.zmdcdn.me/d5e48d317636af55834b87b0fd9fd5fe?authen=exp=1762399955~acl=/d5e48d317636af55834b87b0fd9fd5fe*~hmac=537e951475297463e4a86ebf0646086e" type="audio/mpeg">
         Tu navegador no soporta el audio.
     </audio>
 
-    <button id="audio-toggle">🔊</button>
+    <button id="toggle-audio" class="btn-audio-toggle">
+        <i id="audio-icon" class="fa-solid fa-volume-high"></i>
+    </button>
+
+    <!-- Contenedor para palabras flotantes -->
+    <div class="floating-words" id="floating-words"></div>
 
     <div class="container" id="click-overlay">
         <h1>Toca para empezar</h1>
@@ -125,107 +214,319 @@
 MY ALEJ</div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // --- TRES.JS: EFECTO 3D DINÁMICO CORREGIDO ---
-        let scene, camera, renderer, particles;
-        let isThreeJsReady = false;
+        // --- SECCIÓN 1: LÓGICA DE INICIO ---
 
-        function initThreeJS() {
-            if (isThreeJsReady) return;
-            
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            
-            const container = document.getElementById('three-container');
-            container.innerHTML = '';
-            container.appendChild(renderer.domElement);
-
-            const particlesCount = 1800;
-            const geometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(particlesCount * 3);
-            const colors = new Float32Array(particlesCount * 3);
-
-            for (let i = 0; i < particlesCount * 3; i += 3) {
-                positions[i] = (Math.random() - 0.5) * 50;
-                positions[i + 1] = (Math.random() - 0.5) * 50;
-                positions[i + 2] = (Math.random() - 0.5) * 50;
-
-                colors[i] = 1.0;     // r
-                colors[i + 1] = 0.4; // g
-                colors[i + 2] = 0.6; // b
-            }
-
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-            const material = new THREE.PointsMaterial({
-                size: 0.12,
-                vertexColors: true,
-                transparent: true,
-                opacity: 0.85
-            });
-
-            particles = new THREE.Points(geometry, material);
-            scene.add(particles);
-            camera.position.z = 15;
-
-            isThreeJsReady = true;
-            animate3D();
-        }
-
-        function animate3D() {
-            if (!isThreeJsReady) return;
-            requestAnimationFrame(animate3D);
-
-            // Rotación suave de toda la escena
-            scene.rotation.y += 0.0008;
-            scene.rotation.x += 0.0003;
-
-            // Movimiento sutil de partículas (evita que estén estáticas)
-            const positions = particles.geometry.attributes.position.array;
-            for (let i = 0; i < positions.length; i++) {
-                positions[i] += (Math.random() - 0.5) * 0.02;
-            }
-            particles.geometry.attributes.position.needsUpdate = true;
-
-            renderer.render(scene, camera);
-        }
-
-        window.addEventListener('resize', () => {
-            if (!isThreeJsReady) return;
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // --- LÓGICA DE USUARIO ---
         const overlay = document.getElementById('click-overlay');
         const messageContent = document.getElementById('message-content');
         const audio = document.getElementById('myAudio');
-        const audioToggle = document.getElementById('audio-toggle');
+        const canvas = document.getElementById('animation-canvas');
+        const ctx = canvas.getContext('2d');
+        const toggleAudioBtn = document.getElementById('toggle-audio');
+        const audioIcon = document.getElementById('audio-icon');
+        const floatingWordsContainer = document.getElementById('floating-words');
+
+        let hearts = [];
+        let particles = [];
+        let canvasWidth, canvasHeight;
+        let isPlaying = false;
+        let threeScene, threeCamera, threeRenderer, threeParticles;
+
+        // Lista de palabras románticas (como en LoveLoom)
+        const romanticWords = [
+            "LOVE", "AMOR", "TI AMO", "TE QUIERO", "FOREVER", 
+            "ETERNITY", "SOULMATE", "DESTINY", "PASSION", "ROMANCE",
+            "DEVOTION", "AFFECTION", "SWEETHEART", "DARLING", "BELOVED",
+            "ADORE", "CHERISH", "TREASURE", "HEART", "SOUL",
+            "TOGETHER", "ALWAYS", "FOREVER", "INFINITY", "HAPPINESS",
+            "JOY", "BLISS", "ECSTASY", "PARADISE", "HEAVEN",
+            "BEAUTIFUL", "PERFECT", "ANGEL", "DREAM", "MAGIC",
+            "KISS", "HUG", "TOUCH", "SMILE", "LAUGH",
+            "FOREVER YOURS", "MY EVERYTHING", "MY WORLD", "MY HEART", "MY SOUL"
+        ];
 
         overlay.addEventListener('click', () => {
-            audio.play().then(() => {
-                overlay.style.display = 'none';
-                messageContent.style.display = 'flex';
-                initThreeJS();
-            }).catch(e => console.log("Audio play blocked:", e));
+            audio.play();
+            isPlaying = true;
+            toggleAudioBtn.style.display = 'block';
+            overlay.style.display = 'none';
+            messageContent.style.display = 'flex';
+            startAnimations();
+            initThreeScene();
+            startFloatingWords(); // Iniciar palabras flotantes
         });
 
-        audioToggle.addEventListener('click', () => {
-            audio.muted = !audio.muted;
-            audioToggle.textContent = audio.muted ? '🔇' : '🔊';
-        });
-
-        document.body.addEventListener('click', () => {
-            if (overlay.style.display !== 'none') {
-                overlay.click();
+        // Control de audio
+        toggleAudioBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                audio.pause();
+                audioIcon.className = 'fa-solid fa-volume-xmark';
+            } else {
+                audio.play();
+                audioIcon.className = 'fa-solid fa-volume-high';
             }
+            isPlaying = !isPlaying;
+        });
+
+        // --- SECCIÓN 2: PALABRAS FLOTANTES ---
+
+        function startFloatingWords() {
+            // Crear palabras flotantes continuamente
+            setInterval(() => {
+                createFloatingWord();
+            }, 800); // Crear una nueva palabra cada 800ms
+
+            // Crear algunas palabras iniciales
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    createFloatingWord();
+                }, i * 300);
+            }
+        }
+
+        function createFloatingWord() {
+            const word = document.createElement('div');
+            word.className = 'floating-word';
+            
+            // Seleccionar palabra aleatoria
+            const randomWord = romanticWords[Math.floor(Math.random() * romanticWords.length)];
+            word.textContent = randomWord;
+            
+            // Posición horizontal aleatoria
+            const left = Math.random() * 85 + 5; // 5% a 90%
+            word.style.left = left + '%';
+            
+            // Tamaño aleatorio
+            const size = Math.random() * 0.8 + 0.7; // 0.7rem a 1.5rem
+            word.style.fontSize = size + 'rem';
+            
+            // Opacidad aleatoria
+            const opacity = Math.random() * 0.4 + 0.4; // 0.4 a 0.8
+            word.style.opacity = opacity;
+            
+            // Duración de animación aleatoria
+            const duration = Math.random() * 10 + 20; // 20s a 30s
+            word.style.animationDuration = duration + 's';
+            
+            // Retraso aleatorio
+            const delay = Math.random() * 5;
+            word.style.animationDelay = delay + 's';
+            
+            // Color aleatorio (tonos de rosa)
+            const hue = Math.random() * 20 + 320; // 320-340 (tonos rosas)
+            const saturation = Math.random() * 30 + 60; // 60-90%
+            const lightness = Math.random() * 20 + 60; // 60-80%
+            word.style.color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+            
+            floatingWordsContainer.appendChild(word);
+            
+            // Eliminar palabra después de que termine la animación
+            setTimeout(() => {
+                if (word.parentNode) {
+                    word.parentNode.removeChild(word);
+                }
+            }, (duration + delay) * 1000);
+        }
+
+        // --- SECCIÓN 3: LÓGICA DE ANIMACIONES 2D ---
+
+        function resizeCanvas() {
+            canvasWidth = window.innerWidth;
+            canvasHeight = window.innerHeight;
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+        }
+
+        function drawHeart(x, y, size, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(x + size / 2, y + size / 4);
+            ctx.bezierCurveTo(x + size / 2, y, x, y, x, y + size / 4);
+            ctx.bezierCurveTo(x, y + size / 2, x + size / 2, y + size * 0.75, x + size / 2, y + size);
+            ctx.bezierCurveTo(x + size / 2, y + size * 0.75, x + size, y + size / 2, x + size, y + size / 4);
+            ctx.bezierCurveTo(x + size, y, x + size / 2, y, x + size / 2, y + size / 4);
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        class Heart {
+            constructor() {
+                this.x = Math.random() * canvasWidth;
+                this.y = Math.random() * -canvasHeight - 20;
+                this.size = Math.random() * 20 + 10;
+                this.speed = Math.random() * 3 + 1;
+                this.opacity = Math.random() * 0.5 + 0.3;
+            }
+            update() {
+                this.y += this.speed;
+                if (this.y > canvasHeight) {
+                    this.y = -this.size - 20;
+                    this.x = Math.random() * canvasWidth;
+                }
+            }
+            draw() {
+                drawHeart(this.x, this.y, this.size, `rgba(238, 102, 166, ${this.opacity})`);
+            }
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvasWidth;
+                this.y = Math.random() * canvasHeight + canvasHeight;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedY = Math.random() * -1.5 - 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y < -this.size) {
+                    this.y = canvasHeight + this.size;
+                    this.x = Math.random() * canvasWidth;
+                }
+                if (this.x < -this.size) { this.x = canvasWidth + this.size; }
+                if (this.x > canvasWidth + this.size) { this.x = -this.size; }
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight); 
+            
+            hearts.forEach(heart => {
+                heart.update();
+                heart.draw();
+            });
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            
+            requestAnimationFrame(animate);
+        }
+
+        function startAnimations() {
+            resizeCanvas(); 
+            if (hearts.length === 0) { 
+                for (let i = 0; i < 50; i++) {
+                    hearts.push(new Heart());
+                }
+                for (let i = 0; i < 100; i++) {
+                    particles.push(new Particle());
+                }
+            }
+            animate();
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+
+        // --- SECCIÓN 4: EFECTO 3D ---
+
+        function initThreeScene() {
+            // Crear escena
+            threeScene = new THREE.Scene();
+            
+            // Crear cámara
+            threeCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            threeCamera.position.z = 5;
+            
+            // Crear renderizador
+            threeRenderer = new THREE.WebGLRenderer({ 
+                canvas: document.getElementById('three-canvas'),
+                alpha: true,
+                antialias: true
+            });
+            threeRenderer.setSize(window.innerWidth, window.innerHeight);
+            threeRenderer.setClearColor(0x000000, 0);
+            
+            // Crear partículas 3D
+            const particleCount = 500;
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 50;
+                positions[i + 1] = (Math.random() - 0.5) * 50;
+                positions[i + 2] = (Math.random() - 0.5) * 50;
+                
+                colors[i] = 0.93;
+                colors[i + 1] = 0.4;
+                colors[i + 2] = 0.65;
+            }
+            
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            const material = new THREE.PointsMaterial({
+                size: 0.1,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            threeParticles = new THREE.Points(geometry, material);
+            threeScene.add(threeParticles);
+            
+            // Añadir luz
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            threeScene.add(ambientLight);
+            
+            const pointLight = new THREE.PointLight(0xEE66A6, 1, 100);
+            pointLight.position.set(10, 10, 10);
+            threeScene.add(pointLight);
+            
+            function animateThree() {
+                requestAnimationFrame(animateThree);
+                
+                threeParticles.rotation.x += 0.001;
+                threeParticles.rotation.y += 0.002;
+                
+                threeCamera.position.x = Math.sin(Date.now() * 0.0005) * 5;
+                threeCamera.position.y = Math.cos(Date.now() * 0.0003) * 3;
+                threeCamera.lookAt(threeScene.position);
+                
+                threeRenderer.render(threeScene, threeCamera);
+            }
+            
+            animateThree();
+            
+            window.addEventListener('resize', () => {
+                threeCamera.aspect = window.innerWidth / window.innerHeight;
+                threeCamera.updateProjectionMatrix();
+                threeRenderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        // Efecto de escritura para el mensaje
+        document.addEventListener('DOMContentLoaded', () => {
+            const message = document.querySelector('.message');
+            const originalText = message.textContent;
+            message.textContent = '';
+            
+            let i = 0;
+            const typeWriter = () => {
+                if (i < originalText.length) {
+                    message.textContent += originalText.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, 100);
+                }
+            };
+            
+            overlay.addEventListener('click', () => {
+                setTimeout(typeWriter, 500);
+            });
         });
     </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </body>
 </html>
