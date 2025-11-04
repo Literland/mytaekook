@@ -26,15 +26,9 @@
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
-            -webkit-overflow-scrolling: touch;
         }
 
-        /* Detectar móvil y aplicar estilos específicos */
-        .mobile-optimized {
-            /* Estilos que se aplicarán solo cuando se detecte móvil */
-        }
-
-        /* Canvas 3D - Optimizado para móvil */
+        /* Canvas 3D con prioridad máxima */
         #three-canvas {
             position: fixed;
             top: 0;
@@ -42,7 +36,7 @@
             width: 100%;
             height: 100%;
             z-index: 0;
-            touch-action: pan-x pan-y;
+            display: block;
         }
 
         /* Contenedores */
@@ -59,13 +53,15 @@
             text-align: center;
             z-index: 10;
             padding: 20px;
+            pointer-events: none;
         }
 
-        /* Pantalla inicial optimizada para touch */
+        /* Permitir clicks solo en overlay */
         #click-overlay {
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.8);
             cursor: pointer;
             transition: all 0.5s ease;
+            pointer-events: auto;
         }
 
         #click-overlay h1 {
@@ -73,18 +69,16 @@
             color: #ff85b3;
             margin-bottom: 15px;
             animation: pulse 2s infinite ease-in-out;
-            text-shadow: 0 0 15px #ff6ba1;
-            padding: 0 10px;
+            text-shadow: 0 0 20px #ff6ba1;
         }
 
         #click-overlay p {
             font-size: clamp(0.9rem, 3.5vw, 1.3rem);
             color: #f8b7d8;
             margin: 8px 0;
-            padding: 0 15px;
         }
 
-        /* Mensaje principal optimizado */
+        /* Mensaje principal */
         #message-content {
             display: none;
         }
@@ -94,19 +88,18 @@
             font-weight: 700;
             color: #ff9ec5;
             text-shadow: 
-                0 0 15px #ff6ba1,
-                0 0 30px #ff85b3,
-                0 0 45px #ff9ec5;
+                0 0 20px #ff6ba1,
+                0 0 40px #ff85b3,
+                0 0 60px #ff9ec5;
             animation: 
                 glow 3s ease-in-out infinite alternate,
                 float 6s ease-in-out infinite;
             line-height: 1.3;
             text-align: center;
             white-space: pre-wrap;
-            padding: 0 15px;
         }
 
-        /* Botón de audio optimizado para touch */
+        /* Botón de audio */
         .btn-audio-toggle {
             position: fixed;
             top: 15px;
@@ -123,24 +116,27 @@
             display: none;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
-            box-shadow: 0 0 15px rgba(255, 158, 197, 0.6);
-            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 0 20px rgba(255, 158, 197, 0.6);
+            pointer-events: auto;
         }
 
-        /* Efecto de palabras al tocar */
+        /* Efecto de palabras al tocar - MÁS VISIBLE */
         .click-word {
             position: absolute;
-            font-size: 1.6rem;
+            font-size: 2rem;
             font-weight: bold;
             color: #ff9ec5;
             pointer-events: none;
             z-index: 5;
             animation: wordFloat 4s ease-out forwards;
-            text-shadow: 0 0 8px rgba(255, 158, 197, 0.7);
+            text-shadow: 
+                0 0 10px currentColor,
+                0 0 20px currentColor;
             font-family: 'Mali', cursive;
+            filter: drop-shadow(0 0 8px rgba(255, 158, 197, 0.8));
         }
 
-        /* Loading optimizado */
+        /* Loading */
         .loading {
             position: fixed;
             top: 50%;
@@ -151,12 +147,16 @@
             z-index: 20;
             display: none;
             text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
         }
 
-        /* Indicador de touch para móvil */
-        .touch-indicator {
+        /* Indicador de movimiento */
+        .move-indicator {
             position: fixed;
-            bottom: 30px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             color: #f8b7d8;
@@ -164,108 +164,76 @@
             z-index: 10;
             display: none;
             text-align: center;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 8px 15px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
             border-radius: 20px;
             backdrop-filter: blur(10px);
+            pointer-events: none;
         }
 
-        /* Animaciones optimizadas para rendimiento */
+        /* Animaciones mejoradas */
         @keyframes glow {
             0%, 100% {
                 text-shadow: 
-                    0 0 15px #ff6ba1,
-                    0 0 30px #ff85b3,
-                    0 0 45px #ff9ec5;
+                    0 0 20px #ff6ba1,
+                    0 0 40px #ff85b3,
+                    0 0 60px #ff9ec5;
             }
             50% {
                 text-shadow: 
-                    0 0 25px #ff6ba1,
-                    0 0 50px #ff85b3,
-                    0 0 75px #ff9ec5;
+                    0 0 30px #ff6ba1,
+                    0 0 60px #ff85b3,
+                    0 0 90px #ff9ec5;
             }
         }
 
         @keyframes float {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-15px) rotate(1deg); }
+            50% { transform: translateY(-20px) rotate(3deg); }
         }
 
         @keyframes pulse {
             0%, 100% { opacity: 0.8; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.03); }
+            50% { opacity: 1; transform: scale(1.05); }
         }
 
         @keyframes wordFloat {
             0% {
                 opacity: 0;
-                transform: translateY(0) scale(0.3) rotate(-10deg);
+                transform: translateY(0) scale(0.5) rotate(-15deg);
             }
             20% {
                 opacity: 1;
-                transform: translateY(-25px) scale(1.1) rotate(3deg);
+                transform: translateY(-40px) scale(1.3) rotate(5deg);
             }
             80% {
-                opacity: 0.7;
-                transform: translateY(-80px) scale(0.9) rotate(0deg);
+                opacity: 0.8;
+                transform: translateY(-120px) scale(1) rotate(0deg);
             }
             100% {
                 opacity: 0;
-                transform: translateY(-120px) scale(0.7) rotate(5deg);
+                transform: translateY(-180px) scale(0.8) rotate(10deg);
             }
         }
 
-        /* Mejoras específicas para móviles */
+        /* Chrome mobile optimizations */
         @media (max-width: 768px) {
             .btn-audio-toggle {
                 width: 45px;
                 height: 45px;
                 font-size: 1.1rem;
-                top: 12px;
-                right: 12px;
             }
             
             .message {
                 font-size: clamp(1.8rem, 7vw, 3.2rem);
-                line-height: 1.2;
             }
 
             .click-word {
-                font-size: 1.4rem;
+                font-size: 1.8rem;
             }
 
-            .touch-indicator {
+            .move-indicator {
                 display: block;
-            }
-        }
-
-        @media (max-width: 480px) {
-            #click-overlay {
-                padding: 15px;
-            }
-            
-            #click-overlay h1 {
-                margin-bottom: 12px;
-                font-size: clamp(1.6rem, 6vw, 2.8rem);
-            }
-
-            .message {
-                font-size: clamp(1.6rem, 6vw, 2.8rem);
-            }
-
-            .btn-audio-toggle {
-                width: 40px;
-                height: 40px;
-                font-size: 1rem;
-                top: 10px;
-                right: 10px;
-            }
-        }
-
-        /* Prevenir zoom no deseado */
-        @media (max-width: 768px) {
-            input, select, textarea {
-                font-size: 16px;
             }
         }
     </style>
@@ -282,15 +250,15 @@
     <!-- Loading -->
     <div class="loading" id="loading">
         <i class="fas fa-heart fa-beat" style="color: #ff6ba1; margin-right: 10px;"></i>
-        <div>Creando nuestro mundo especial...</div>
+        <div>Cargando experiencia 3D...</div>
         <div style="font-size: 0.9rem; margin-top: 10px; color: #f8b7d8;">
-            Esto puede tomar unos segundos 💖
+            Activando efectos especiales ✨
         </div>
     </div>
 
-    <!-- Indicador de touch -->
-    <div class="touch-indicator" id="touch-indicator">
-        👆 Toca la pantalla para interactuar
+    <!-- Indicador de movimiento -->
+    <div class="move-indicator" id="move-indicator">
+        👆 Mueve el dedo para explorar el espacio 3D
     </div>
 
     <!-- Botón de audio -->
@@ -301,13 +269,13 @@
     <!-- Pantalla inicial -->
     <div class="container" id="click-overlay">
         <div>
-            <h1>💖 Nuestro Universo de Amor 💖</h1>
-            <p>Toca para entrar a nuestro mundo especial</p>
+            <h1>💖 Universo 3D de Amor 💖</h1>
+            <p>Toca para activar la experiencia inmersiva</p>
             <p style="font-size: 1.1rem; margin-top: 25px;">
-                Para ti, mi ALEJ, con todo mi corazón 💕
+                Para mi ALEJ 💕
             </p>
             <div style="margin-top: 30px; font-size: 0.8rem; color: #d8bfd8;">
-                💫 Optimizado para móvil
+                🚀 Efectos 3D intensos activados
             </div>
         </div>
     </div>
@@ -319,12 +287,11 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // ========== DETECCIÓN Y OPTIMIZACIÓN PARA MÓVIL ==========
+        // ========== CONFIGURACIÓN MEJORADA PARA CHROME MOBILE ==========
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const isTablet = /iPad|Android|Tablet|Kindle|Silk/i.test(navigator.userAgent);
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
         
-        console.log(`Dispositivo: ${isMobile ? 'Móvil' : 'Desktop'} ${isIOS ? '(iOS)' : ''}`);
+        console.log(`Navegador: ${isChrome ? 'Chrome' : 'Otro'} | Dispositivo: ${isMobile ? 'Móvil' : 'Desktop'}`);
 
         // Elementos DOM
         const overlay = document.getElementById('click-overlay');
@@ -333,25 +300,31 @@
         const toggleAudioBtn = document.getElementById('toggle-audio');
         const audioIcon = document.getElementById('audio-icon');
         const loading = document.getElementById('loading');
-        const touchIndicator = document.getElementById('touch-indicator');
+        const moveIndicator = document.getElementById('move-indicator');
 
-        // Configuración basada en dispositivo
+        // CONFIGURACIÓN MEJORADA - EFECTOS MÁS INTENSOS
         const config = {
             mobile: {
-                particleCount: 300,
-                heartCount: 15,
-                textCount: 8,
-                fogDistance: 300,
-                cameraSensitivity: 0.0008,
-                performanceMode: true
+                particleCount: 400,  // Más partículas
+                heartCount: 20,      // Más corazones
+                textCount: 12,       // Más textos
+                cameraSensitivity: 0.002,  // Más sensible
+                movementIntensity: 120,     // Movimiento más exagerado
+                rotationIntensity: 0.1,     // Rotación más notable
+                scaleIntensity: 0.4,        // Escala más dramática
+                fog: false,          // Sin niebla para mejor rendimiento
+                shadows: false       // Sin sombras para mejor FPS
             },
             desktop: {
-                particleCount: 800,
-                heartCount: 30,
-                textCount: 15,
-                fogDistance: 500,
-                cameraSensitivity: 0.001,
-                performanceMode: false
+                particleCount: 1000,
+                heartCount: 35,
+                textCount: 18,
+                cameraSensitivity: 0.0015,
+                movementIntensity: 150,
+                rotationIntensity: 0.08,
+                scaleIntensity: 0.3,
+                fog: true,
+                shadows: true
             }
         };
 
@@ -366,59 +339,52 @@
         let windowHalfX = window.innerWidth / 2;
         let windowHalfY = window.innerHeight / 2;
 
-        // Palabras para el efecto de touch
+        // Palabras para efecto de touch - MÁS VARIEDAD
         const clickWords = [
             "TE AMO", "I LOVE YOU", "MI AMOR", "FOREVER", "SIEMPRE",
-            "MY HEART", "BESOS", "ABRAZOS", "ERES MÍA", "MI TODO"
+            "MY HEART", "BESOS", "ABRAZOS", "ERES MÍA", "MI TODO",
+            "SOULMATE", "PASIÓN", "ROMANCE", "ETERNIDAD", "INFINITO"
         ];
 
-        // Colores pastel
-        const pastelColors = [
-            '#FFB6C1', '#FFD1DC', '#FF9EC5', '#F8C8DC', '#F4A6B8',
-            '#FF85B3', '#FF6BA1', '#FFB7C5', '#FFCCD5'
+        // Colores más vibrantes
+        const colors = [
+            '#FF6BA1', '#FF85B3', '#FF9EC5', '#FFB7C5', '#FFCCD5',
+            '#FF6B8B', '#FF85A1', '#FF9EB7', '#FFB7CD', '#FFCCE0'
         ];
 
-        // ========== INICIALIZACIÓN OPTIMIZADA ==========
+        // ========== INICIALIZACIÓN MEJORADA ==========
         function init() {
             if (isInitialized) return;
             
-            console.log("Iniciando experiencia optimizada para móvil...");
+            console.log("Iniciando experiencia 3D intensa...");
             isInitialized = true;
 
-            // Mostrar loading con mensaje específico
             loading.style.display = 'block';
             loading.innerHTML = `
                 <i class="fas fa-heart fa-beat" style="color: #ff6ba1; margin-right: 10px;"></i>
-                <div>${isMobile ? 'Preparando experiencia móvil...' : 'Cargando mundo 3D...'}</div>
+                <div>Activando mundo 3D...</div>
                 <div style="font-size: 0.9rem; margin-top: 10px; color: #f8b7d8;">
-                    ${isMobile ? '💫 Optimizado para tu dispositivo' : '✨ Experiencia completa activada'}
+                    ${isMobile ? '🎮 Efectos móvil intensos' : '✨ Experiencia completa 3D'}
                 </div>
             `;
             
-            // Iniciar Three.js con configuración optimizada
-            initThreeJS();
+            // Forzar limpieza de caché de WebGL
+            if (isChrome && isMobile) {
+                console.log("Optimizando para Chrome Mobile...");
+            }
             
-            // Intentar reproducir audio
+            initThreeJS();
             playAudio();
         }
 
         function playAudio() {
-            // En móvil, el audio puede requerir interacción directa
-            if (isMobile) {
-                audio.volume = 0.7; // Volumen más bajo en móvil
-            }
-            
-            const playPromise = audio.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    console.log("Audio reproducido exitosamente");
-                    completeInitialization();
-                }).catch(error => {
-                    console.log("Audio requiere interacción del usuario");
-                    completeInitialization();
-                });
-            }
+            audio.play().then(() => {
+                console.log("Audio activado");
+                completeInitialization();
+            }).catch(error => {
+                console.log("Audio requiere interacción");
+                completeInitialization();
+            });
         }
 
         function completeInitialization() {
@@ -428,25 +394,35 @@
             toggleAudioBtn.style.display = 'block';
             
             if (isMobile) {
-                touchIndicator.style.display = 'block';
-                // Ocultar indicador después de 5 segundos
+                moveIndicator.style.display = 'block';
                 setTimeout(() => {
-                    touchIndicator.style.display = 'none';
-                }, 5000);
+                    moveIndicator.style.display = 'none';
+                }, 6000);
             }
             
             isPlaying = true;
             startTypewriter();
+            
+            // Efecto inicial dramático
+            setTimeout(() => {
+                hearts3D.forEach((heart, index) => {
+                    heart.scale.setScalar(1.5);
+                    setTimeout(() => {
+                        heart.scale.setScalar(1);
+                    }, 500);
+                });
+            }, 1000);
         }
 
-        // ========== EFECTO DE PALABRAS AL TOCAR ==========
+        // ========== EFECTO DE PALABRAS MEJORADO ==========
         function createClickWord(x, y) {
             const word = document.createElement('div');
             word.className = 'click-word';
             word.textContent = clickWords[Math.floor(Math.random() * clickWords.length)];
             word.style.left = x + 'px';
             word.style.top = y + 'px';
-            word.style.color = pastelColors[Math.floor(Math.random() * pastelColors.length)];
+            word.style.color = colors[Math.floor(Math.random() * colors.length)];
+            word.style.fontSize = (Math.random() * 0.5 + 1.5) + 'rem';
             
             document.body.appendChild(word);
             
@@ -457,7 +433,6 @@
             }, 4000);
         }
 
-        // Eventos de touch optimizados
         document.addEventListener('click', (e) => {
             if (isInitialized) {
                 createClickWord(e.clientX, e.clientY);
@@ -471,68 +446,82 @@
             }
         }, { passive: false });
 
-        // ========== THREE.JS OPTIMIZADO PARA MÓVIL ==========
+        // ========== THREE.JS CON EFECTOS MÁS INTENSOS ==========
         function initThreeJS() {
             try {
-                // Escena con configuración optimizada
+                // Escena
                 scene = new THREE.Scene();
-                scene.background = new THREE.Color(0x000000);
+                scene.background = new THREE.Color(0x000011); // Fondo azul oscuro para contraste
                 
-                // Niebla optimizada para rendimiento
-                if (!currentConfig.performanceMode) {
-                    scene.fog = new THREE.Fog(0x000000, 50, currentConfig.fogDistance);
+                if (currentConfig.fog) {
+                    scene.fog = new THREE.Fog(0x000022, 50, 300);
                 }
 
-                // Cámara optimizada
-                camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-                camera.position.set(0, 0, 80);
+                // Cámara con campo de visión más amplio
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.set(0, 0, 60);
 
-                // Renderer con ajustes de rendimiento
+                // Renderer con configuración agresiva para Chrome Mobile
                 renderer = new THREE.WebGLRenderer({ 
                     canvas: document.getElementById('three-canvas'),
-                    alpha: true,
-                    antialias: !currentConfig.performanceMode, // Sin antialiasing en móvil para mejor rendimiento
-                    powerPreference: "high-performance"
+                    alpha: false, // Sin alpha para mejor rendimiento
+                    antialias: false, // Sin antialiasing
+                    powerPreference: "high-performance",
+                    precision: isMobile ? "mediump" : "highp"
                 });
                 
                 renderer.setSize(window.innerWidth, window.innerHeight);
-                renderer.setPixelRatio(isMobile ? Math.min(1.5, window.devicePixelRatio) : window.devicePixelRatio);
+                renderer.setPixelRatio(isMobile ? 1 : window.devicePixelRatio); // Pixel ratio fijo en móvil
+                
+                if (currentConfig.shadows) {
+                    renderer.shadowMap.enabled = true;
+                    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                }
 
-                // Sistema de luces optimizado
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                // Luces más intensas
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
                 scene.add(ambientLight);
 
-                const directionalLight = new THREE.DirectionalLight(0xff9ec5, 0.8);
-                directionalLight.position.set(5, 5, 5);
-                scene.add(directionalLight);
+                const directionalLight1 = new THREE.DirectionalLight(0xff6ba1, 1.2);
+                directionalLight1.position.set(10, 10, 10);
+                if (currentConfig.shadows) {
+                    directionalLight1.castShadow = true;
+                }
+                scene.add(directionalLight1);
 
-                // Crear elementos 3D optimizados
+                const directionalLight2 = new THREE.DirectionalLight(0x85b3ff, 0.8);
+                directionalLight2.position.set(-10, 5, 5);
+                scene.add(directionalLight2);
+
+                const pointLight = new THREE.PointLight(0xff9ec5, 0.8, 100);
+                pointLight.position.set(0, 0, 30);
+                scene.add(pointLight);
+
+                // Crear elementos 3D
                 createHearts3D();
                 createFloatingTexts3D();
                 createParticleField();
 
-                // Eventos de movimiento optimizados para touch
+                // Eventos de movimiento
                 document.addEventListener('mousemove', onMouseMove);
                 document.addEventListener('touchmove', onTouchMove, { passive: true });
 
-                // Animación optimizada
+                // Animación
                 animateThreeJS();
 
-                // Resize handler
                 window.addEventListener('resize', onWindowResize);
 
-                console.log("Three.js inicializado con configuración optimizada");
+                console.log("Three.js inicializado con efectos intensos");
 
             } catch (error) {
                 console.error("Error en Three.js:", error);
-                // Fallback: mostrar mensaje amigable
                 loading.innerHTML = `
                     <div style="color: #ff6ba1; margin-bottom: 15px;">
-                        <i class="fas fa-heart-broken"></i>
+                        <i class="fas fa-star"></i>
                     </div>
-                    <div>Tu dispositivo tiene limitaciones técnicas</div>
+                    <div>Modo compatibilidad activado</div>
                     <div style="font-size: 0.9rem; margin-top: 10px; color: #f8b7d8;">
-                        Pero nuestro amor sigue brillando 💖
+                        Los efectos 3D están limitados pero el amor es infinito 💖
                     </div>
                 `;
                 completeInitialization();
@@ -540,12 +529,11 @@
         }
 
         function createHearts3D() {
+            // Geometría de corazón más definida
             const heartShape = new THREE.Shape();
-            
-            // Forma de corazón simplificada para mejor rendimiento
             heartShape.moveTo(0, 0);
-            for (let i = 0; i < 20; i++) { // Menos puntos para mejor rendimiento
-                const t = i / 20 * Math.PI * 2;
+            for (let i = 0; i < 25; i++) {
+                const t = i / 25 * Math.PI * 2;
                 const px = 16 * Math.pow(Math.sin(t), 3);
                 const py = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
                 if (i === 0) {
@@ -556,26 +544,29 @@
             }
 
             const extrudeSettings = {
-                depth: 0.8,
-                bevelEnabled: !currentConfig.performanceMode, // Sin bevel en móvil
-                bevelThickness: 0.1,
-                bevelSize: 0.1,
-                bevelSegments: 4
+                depth: 1.2,
+                bevelEnabled: true,
+                bevelThickness: 0.2,
+                bevelSize: 0.15,
+                bevelSegments: 6
             };
 
             for (let i = 0; i < currentConfig.heartCount; i++) {
                 const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
                 const material = new THREE.MeshPhongMaterial({
-                    color: new THREE.Color(pastelColors[Math.floor(Math.random() * pastelColors.length)]),
+                    color: new THREE.Color(colors[Math.floor(Math.random() * colors.length)]),
                     transparent: true,
-                    opacity: 0.8,
-                    shininess: 80
+                    opacity: 0.9,
+                    shininess: 100,
+                    specular: 0xffffff,
+                    emissive: new THREE.Color(colors[Math.floor(Math.random() * colors.length)]),
+                    emissiveIntensity: 0.3
                 });
 
                 const heart = new THREE.Mesh(geometry, material);
                 
-                // Distribución optimizada
-                const radius = 40 + Math.random() * 60;
+                // Posiciones más cercanas a la cámara
+                const radius = 30 + Math.random() * 50;
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos(2 * Math.random() - 1);
                 
@@ -583,15 +574,23 @@
                 heart.position.y = radius * Math.sin(phi) * Math.sin(theta);
                 heart.position.z = radius * Math.cos(phi);
                 
-                heart.rotation.x = Math.random() * Math.PI;
-                heart.rotation.y = Math.random() * Math.PI;
+                // Rotaciones más extremas
+                heart.rotation.x = Math.random() * Math.PI * 2;
+                heart.rotation.y = Math.random() * Math.PI * 2;
+                heart.rotation.z = Math.random() * Math.PI * 2;
                 
                 heart.userData = {
                     originalPosition: heart.position.clone(),
-                    speed: Math.random() * 0.008 + 0.003,
+                    speed: Math.random() * 0.01 + 0.005,
                     angle: Math.random() * Math.PI * 2,
-                    pulseSpeed: Math.random() * 0.015 + 0.005
+                    pulseSpeed: Math.random() * 0.02 + 0.01,
+                    rotationSpeed: (Math.random() - 0.5) * 0.02
                 };
+
+                if (currentConfig.shadows) {
+                    heart.castShadow = true;
+                    heart.receiveShadow = true;
+                }
 
                 scene.add(heart);
                 hearts3D.push(heart);
@@ -599,19 +598,22 @@
         }
 
         function createFloatingTexts3D() {
-            const words3D = ["TE", "AMO", "LOVE", "YOU", "FOREVER", "ALWAYS", "MI", "AMOR"];
+            const words3D = ["TE", "AMO", "LOVE", "YOU", "FOREVER", "ALWAYS", "MI", "AMOR", "HEART", "SOUL"];
 
             for (let i = 0; i < currentConfig.textCount; i++) {
-                const geometry = new THREE.SphereGeometry(1.2, 8, 6); // Geometría más simple
+                // Usar octaedros en lugar de esferas para más definición
+                const geometry = new THREE.OctahedronGeometry(2, 1);
                 const material = new THREE.MeshPhongMaterial({
-                    color: new THREE.Color(pastelColors[i % pastelColors.length]),
+                    color: new THREE.Color(colors[i % colors.length]),
                     transparent: true,
-                    opacity: 0.7
+                    opacity: 0.8,
+                    emissive: new THREE.Color(colors[i % colors.length]),
+                    emissiveIntensity: 0.4
                 });
 
                 const textMesh = new THREE.Mesh(geometry, material);
                 
-                const radius = 50 + Math.random() * 80;
+                const radius = 40 + Math.random() * 70;
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos(2 * Math.random() - 1);
                 
@@ -621,7 +623,8 @@
                 
                 textMesh.userData = {
                     originalPosition: textMesh.position.clone(),
-                    speed: Math.random() * 0.006 + 0.002
+                    speed: Math.random() * 0.008 + 0.003,
+                    rotationSpeed: (Math.random() - 0.5) * 0.015
                 };
 
                 scene.add(textMesh);
@@ -635,24 +638,24 @@
             const colors = new Float32Array(currentConfig.particleCount * 3);
 
             for (let i = 0; i < currentConfig.particleCount * 3; i += 3) {
-                positions[i] = (Math.random() - 0.5) * 400;
-                positions[i + 1] = (Math.random() - 0.5) * 400;
-                positions[i + 2] = (Math.random() - 0.5) * 400;
+                positions[i] = (Math.random() - 0.5) * 500;
+                positions[i + 1] = (Math.random() - 0.5) * 500;
+                positions[i + 2] = (Math.random() - 0.5) * 500;
 
-                const color = new THREE.Color(pastelColors[Math.floor(Math.random() * pastelColors.length)]);
-                colors[i] = color.r * 0.4;
-                colors[i + 1] = color.g * 0.4;
-                colors[i + 2] = color.b * 0.4;
+                const color = new THREE.Color(colors[Math.floor(Math.random() * colors.length)]);
+                colors[i] = color.r;
+                colors[i + 1] = color.g;
+                colors[i + 2] = color.b;
             }
 
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
             const material = new THREE.PointsMaterial({
-                size: currentConfig.performanceMode ? 1.5 : 2,
+                size: 3,
                 vertexColors: true,
                 transparent: true,
-                opacity: 0.5,
+                opacity: 0.7,
                 sizeAttenuation: true
             });
 
@@ -677,36 +680,45 @@
 
             const time = Date.now() * 0.001;
 
-            // Movimiento de cámara optimizado
-            camera.position.x += (mouseX * 100 - camera.position.x) * 0.03;
-            camera.position.y += (-mouseY * 100 - camera.position.y) * 0.03;
+            // MOVIMIENTO DE CÁMARA MÁS EXAGERADO
+            camera.position.x += (mouseX * currentConfig.movementIntensity - camera.position.x) * 0.05;
+            camera.position.y += (-mouseY * currentConfig.movementIntensity - camera.position.y) * 0.05;
             
-            // Rotación de cámara más suave en móvil
-            if (!currentConfig.performanceMode) {
-                camera.rotation.z = mouseX * 0.05;
-                camera.rotation.x = mouseY * 0.03;
-            }
+            // ROTACIÓN DE CÁMARA MÁS NOTABLE
+            camera.rotation.z = mouseX * currentConfig.rotationIntensity;
+            camera.rotation.x = mouseY * currentConfig.rotationIntensity * 0.7;
 
             camera.lookAt(scene.position);
 
-            // Animación optimizada de corazones
+            // ANIMACIÓN DE CORAZONES MÁS DRAMÁTICA
             hearts3D.forEach((heart, index) => {
-                heart.rotation.y += 0.008;
+                heart.rotation.x += heart.userData.rotationSpeed;
+                heart.rotation.y += 0.015;
+                heart.rotation.z += heart.userData.rotationSpeed * 0.5;
                 
-                // Movimiento orbital optimizado
+                // Movimiento orbital más amplio
                 heart.userData.angle += heart.userData.speed;
-                heart.position.x = heart.userData.originalPosition.x + Math.sin(time + heart.userData.angle) * 3;
-                heart.position.y = heart.userData.originalPosition.y + Math.cos(time * 0.5 + heart.userData.angle) * 2;
+                heart.position.x = heart.userData.originalPosition.x + 
+                    Math.sin(time * 1.5 + heart.userData.angle) * 8;
+                heart.position.y = heart.userData.originalPosition.y + 
+                    Math.cos(time + heart.userData.angle) * 6;
                 
-                // Pulsación
-                const pulse = Math.sin(time * heart.userData.pulseSpeed + index) * 0.2 + 1;
+                // Pulsación más exagerada
+                const pulse = Math.sin(time * heart.userData.pulseSpeed + index) * 
+                    currentConfig.scaleIntensity + 1;
                 heart.scale.setScalar(pulse);
             });
 
-            // Animación de textos
+            // ANIMACIÓN DE TEXTOS MÁS ACTIVA
             floatingTexts.forEach((text, index) => {
-                text.rotation.y += 0.006;
-                text.position.y = text.userData.originalPosition.y + Math.sin(time * 0.3 + index) * 2;
+                text.rotation.x += text.userData.rotationSpeed;
+                text.rotation.y += 0.01;
+                text.rotation.z += text.userData.rotationSpeed * 0.3;
+                
+                text.position.y = text.userData.originalPosition.y + 
+                    Math.sin(time * 0.8 + index) * 5;
+                text.position.x = text.userData.originalPosition.x + 
+                    Math.cos(time * 0.5 + index) * 3;
             });
 
             renderer.render(scene, camera);
@@ -721,7 +733,6 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // ========== MÁQUINA DE ESCRIBIR ==========
         function startTypewriter() {
             const message = document.querySelector('.message');
             const originalText = message.textContent;
@@ -737,13 +748,13 @@
                         message.textContent += originalText.charAt(i);
                     }
                     i++;
-                    setTimeout(typeWriter, isMobile ? 120 : 100);
+                    setTimeout(typeWriter, 100);
                 }
             };
             setTimeout(typeWriter, 800);
         }
 
-        // ========== EVENT LISTENERS ==========
+        // Event listeners
         overlay.addEventListener('click', init);
         overlay.addEventListener('touchend', init, { passive: false });
 
@@ -763,14 +774,6 @@
             isPlaying = !isPlaying;
         }
 
-        // Prevenir acciones no deseadas en móvil
-        document.addEventListener('touchmove', function(e) {
-            if (e.scale !== 1) {
-                e.preventDefault();
-            }
-        }, { passive: false });
-
-        // Inicializar tamaños
         onWindowResize();
     </script>
 </body>
