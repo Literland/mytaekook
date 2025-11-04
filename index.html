@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>This is for you</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@700&display=swap" rel="stylesheet">
+
     <style>
         /* Estilos base */
         body, html {
@@ -12,12 +16,13 @@
             padding: 0;
             background-color: #000;
             color: #FFF;
-            font-family: 'Courier New', Courier, monospace;
+            /* Aplicamos la nueva fuente a todo */
+            font-family: 'Mali', 'Courier New', monospace;
             overflow: hidden; /* Evita barras de scroll */
         }
 
-        /* Canvas para la lluvia de corazones */
-        #heart-rain {
+        /* Canvas para las animaciones (corazones y partículas) */
+        #animation-canvas {
             position: absolute;
             top: 0;
             left: 0;
@@ -50,7 +55,6 @@
             font-size: 2.5rem;
             color: #f0f0f0;
             margin-bottom: 20px;
-            /* Animación para que parpadee */
             animation: pulse 2s infinite ease-in-out;
         }
 
@@ -62,17 +66,19 @@
         /* 2. Contenido del Mensaje (oculto al inicio) */
         #message-content {
             display: none; /* Oculto por defecto */
-            z-index: 5; /* Encima de la lluvia de corazones */
+            z-index: 5; /* Encima de las animaciones */
         }
 
         /* El Mensaje principal */
         .message {
             font-size: 5rem;
             font-weight: bold;
-            color: #EE66A6; /* Tono rosa del .mht original */
+            color: #EE66A6; /* Tono rosa */
             /* Efecto de neón brillante */
             text-shadow: 0 0 10px #EE66A6, 0 0 20px #EE66A6, 0 0 30px #f7a;
-            animation: glow 1.5s infinite alternate;
+            /* NUEVA ANIMACIÓN: "glow" (brillo) y "breath" (respiración) */
+            animation: glow 1.5s infinite alternate, 
+                         breath 4s infinite alternate ease-in-out;
             white-space: pre-wrap; /* Respeta los saltos de línea */
         }
 
@@ -83,6 +89,16 @@
             }
             to {
                 text-shadow: 0 0 20px #EE66A6, 0 0 30px #f7a, 0 0 40px #f7a;
+            }
+        }
+
+        /* NUEVA ANIMACIÓN DE RESPIRACIÓN PARA EL TEXTO */
+        @keyframes breath {
+            from { 
+                transform: scale(1); 
+            }
+            to { 
+                transform: scale(1.03); /* Se agranda un 3% */
             }
         }
 
@@ -105,7 +121,7 @@
 </head>
 <body>
 
-    <canvas id="heart-rain"></canvas>
+    <canvas id="animation-canvas"></canvas>
     
     <audio id="myAudio" loop>
         <source src="https://a128-z3.zmdcdn.me/d5e48d317636af55834b87b0fd9fd5fe?authen=exp=1762399955~acl=/d5e48d317636af55834b87b0fd9fd5fe*~hmac=537e951475297463e4a86ebf0646086e" type="audio/mpeg">
@@ -114,7 +130,7 @@
 
     <div class="container" id="click-overlay">
         <h1>Toca para empezar</h1>
-        <p>(Los navegadores requieren un clic para iniciar la música)</p>
+        <p>(Se necesita un clic para iniciar la música)</p>
     </div>
 
     <div class="container" id="message-content">
@@ -128,28 +144,21 @@ MY ALEJ</div>
         const overlay = document.getElementById('click-overlay');
         const messageContent = document.getElementById('message-content');
         const audio = document.getElementById('myAudio');
+        const canvas = document.getElementById('animation-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let hearts = [];
+        let particles = []; // NUEVO: Array para partículas
+        let canvasWidth, canvasHeight;
 
         overlay.addEventListener('click', () => {
-            // 1. Reproduce el audio
             audio.play();
-
-            // 2. Oculta la pantalla de "clic"
             overlay.style.display = 'none';
-
-            // 3. Muestra el mensaje brillante
             messageContent.style.display = 'flex';
-            
-            // 4. Inicia la lluvia de corazones
-            startHeartRain();
+            startAnimations(); // Llama a la función que inicia TODO
         });
 
-
-        // --- SECCIÓN 2: LÓGICA DE LLUVIA DE CORAZONES ---
-
-        const canvas = document.getElementById('heart-rain');
-        const ctx = canvas.getContext('2d');
-        let hearts = [];
-        let canvasWidth, canvasHeight;
+        // --- SECCIÓN 2: LÓGICA DE ANIMACIONES ---
 
         function resizeCanvas() {
             canvasWidth = window.innerWidth;
@@ -158,89 +167,106 @@ MY ALEJ</div>
             canvas.height = canvasHeight;
         }
 
-        // ======================================================
-        // FUNCIÓN DE DIBUJO CORREGIDA
-        // ======================================================
+        // Función para dibujar un corazón (Corregida)
         function drawHeart(x, y, size, color) {
             ctx.fillStyle = color;
             ctx.beginPath();
-            ctx.moveTo(x + size / 2, y + size / 4); // Inicia en la parte superior central (el "valle" del corazón)
-            
-            // Curva superior izquierda
+            ctx.moveTo(x + size / 2, y + size / 4);
             ctx.bezierCurveTo(x + size / 2, y, x, y, x, y + size / 4);
-            
-            // Curva inferior izquierda
             ctx.bezierCurveTo(x, y + size / 2, x + size / 2, y + size * 0.75, x + size / 2, y + size);
-            
-            // Curva inferior derecha
             ctx.bezierCurveTo(x + size / 2, y + size * 0.75, x + size, y + size / 2, x + size, y + size / 4);
-            
-            // Curva superior derecha
             ctx.bezierCurveTo(x + size, y, x + size / 2, y, x + size / 2, y + size / 4);
-            
             ctx.fill();
             ctx.closePath();
         }
-        // ======================================================
-        // FIN DE LA FUNCIÓN CORREGIDA
-        // ======================================================
 
-
-        // Clase para crear un Corazón
+        // Clase para crear un Corazón (que cae)
         class Heart {
             constructor() {
                 this.x = Math.random() * canvasWidth;
-                this.y = Math.random() * -canvasHeight - 20; // Empieza fuera de la pantalla
-                this.size = Math.random() * 20 + 10; // Tamaño entre 10 y 30
-                this.speed = Math.random() * 3 + 1;   // Velocidad entre 1 y 4
-                this.opacity = Math.random() * 0.5 + 0.3; // Opacidad entre 0.3 y 0.8
+                this.y = Math.random() * -canvasHeight - 20;
+                this.size = Math.random() * 20 + 10;
+                this.speed = Math.random() * 3 + 1;
+                this.opacity = Math.random() * 0.5 + 0.3;
             }
-
-            // Mueve el corazón
             update() {
                 this.y += this.speed;
-                // Si sale de la pantalla, lo resetea arriba
-                if (this.y > canvasHeight) { // Corregido (antes era + this.size)
+                if (this.y > canvasHeight) {
                     this.y = -this.size - 20;
                     this.x = Math.random() * canvasWidth;
                 }
             }
-
-            // Dibuja el corazón
             draw() {
-                // Llama a la nueva función de dibujo
                 drawHeart(this.x, this.y, this.size, `rgba(238, 102, 166, ${this.opacity})`);
             }
         }
 
-        // Bucle de animación
+        // NUEVA CLASE: Partícula (que flota hacia arriba)
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvasWidth;
+                this.y = Math.random() * canvasHeight + canvasHeight; // Empieza abajo
+                this.size = Math.random() * 2 + 0.5; // Muy pequeñas
+                this.speedY = Math.random() * -1.5 - 0.5; // Velocidad hacia arriba
+                this.speedX = (Math.random() - 0.5) * 0.5; // Ligero movimiento lateral
+                this.opacity = Math.random() * 0.5 + 0.2; // Muy tenues
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                // Si se sale por arriba, resetea abajo
+                if (this.y < -this.size) {
+                    this.y = canvasHeight + this.size;
+                    this.x = Math.random() * canvasWidth;
+                }
+                // Si se sale por los lados, que reaparezca
+                if (this.x < -this.size) { this.x = canvasWidth + this.size; }
+                if (this.x > canvasWidth + this.size) { this.x = -this.size; }
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        // Bucle de animación (ahora anima corazones Y partículas)
         function animate() {
-            ctx.clearRect(0, 0, canvasWidth, canvasHeight); // Limpia el canvas
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight); 
+            
             hearts.forEach(heart => {
                 heart.update();
                 heart.draw();
             });
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            
             requestAnimationFrame(animate); // Llama al siguiente frame
         }
 
         // Función que se llama al hacer clic
-        function startHeartRain() {
-            resizeCanvas(); // Ajusta el tamaño primero
-            // Crea los corazones
-            if (hearts.length === 0) { // Solo crea los corazones una vez
+        function startAnimations() {
+            resizeCanvas(); 
+            if (hearts.length === 0) { 
+                // Crea 50 corazones
                 for (let i = 0; i < 50; i++) {
                     hearts.push(new Heart());
+                }
+                // Crea 100 partículas
+                for (let i = 0; i < 100; i++) {
+                    particles.push(new Particle());
                 }
             }
             animate(); // Inicia la animación
         }
         
         // Ajusta el canvas si la ventana cambia de tamaño
-        window.addEventListener('resize', () => {
-            // Cuando la ventana cambie de tamaño, reajusta el canvas
-            // No es necesario recrear los corazones, solo reajustar los límites
-            resizeCanvas();
-        });
+        window.addEventListener('resize', resizeCanvas);
 
     </script>
 </body>
