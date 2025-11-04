@@ -2,16 +2,15 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>This is for you</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
-        /* Estilos base */
+        /* Estilos base optimizados para móvil */
         body, html {
             height: 100%;
             margin: 0;
@@ -20,16 +19,29 @@
             color: #FFF;
             font-family: 'Mali', 'Courier New', monospace;
             overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-text-size-adjust: 100%;
+            touch-action: manipulation;
         }
 
-        /* Canvas para el efecto 3D (ocupa todo el fondo) */
+        /* Canvas para las animaciones */
+        #animation-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Canvas para el efecto 3D */
         #three-canvas {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 0; /* Capa más baja */
+            z-index: 0;
         }
 
         /* Contenedor principal centrado */
@@ -44,93 +56,100 @@
             position: absolute;
             top: 0;
             left: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         /* 1. Pantalla de "Clic para empezar" */
         #click-overlay {
             cursor: pointer;
-            z-index: 20; /* Encima de todo */
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.7);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
         }
         
         #click-overlay h1 {
-            font-size: 2.5rem;
+            font-size: clamp(1.8rem, 6vw, 2.5rem);
             color: #f0f0f0;
             margin-bottom: 20px;
             animation: pulse 2s infinite ease-in-out;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
 
         #click-overlay p {
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 4vw, 1.2rem);
             color: #aaa;
+            margin: 0;
         }
 
         /* 2. Contenido del Mensaje (oculto al inicio) */
         #message-content {
             display: none;
-            z-index: 10; /* Encima de los efectos */
+            z-index: 5;
         }
 
         /* El Mensaje principal */
         .message {
-            font-size: 5rem;
+            font-size: clamp(2rem, 10vw, 5rem);
             font-weight: bold;
             color: #EE66A6;
             text-shadow: 0 0 10px #EE66A6, 0 0 20px #EE66A6, 0 0 30px #f7a;
             animation: glow 1.5s infinite alternate, 
                          breath 4s infinite alternate ease-in-out;
             white-space: pre-wrap;
+            line-height: 1.2;
+            text-align: center;
+            padding: 0 10px;
         }
 
-        /* Botón de control de audio */
+        /* Botón de control de audio optimizado para touch */
         .btn-audio-toggle {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 10px;
+            right: 10px;
             z-index: 100;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
             border: none;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            width: 44px;
+            height: 44px;
             cursor: pointer;
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
             color: white;
-            font-size: 1.2rem;
-            display: none; /* Oculto al inicio */
+            font-size: 1.1rem;
+            display: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
-        .btn-audio-toggle:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
+        .btn-audio-toggle:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.25);
         }
 
-        /* Palabras flotantes estilo LoveLoom */
-        .floating-words {
+        /* Loading indicator para móvil */
+        .loading {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 5; /* Entre el fondo 3D y el mensaje */
-        }
-
-        .floating-word {
-            position: absolute;
-            font-size: 1.2rem;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             color: #EE66A6;
-            font-weight: 600;
-            opacity: 0;
-            text-shadow: 0 0 8px rgba(238, 102, 166, 0.5);
-            /* Animación CSS para flotar */
-            animation: floatWord 15s infinite linear;
+            font-size: 1rem;
+            z-index: 20;
+            display: none;
         }
 
-        /* Animaciones */
+        /* Animaciones optimizadas */
         @keyframes glow {
-            from { text-shadow: 0 0 10px #EE66A6, 0 0 20px #EE66A6, 0 0 30px #f7a; }
-            to { text-shadow: 0 0 20px #EE66A6, 0 0 30px #f7a, 0 0 40px #f7a; }
+            from {
+                text-shadow: 0 0 10px #EE66A6, 0 0 20px #EE66A6, 0 0 30px #f7a;
+            }
+            to {
+                text-shadow: 0 0 20px #EE66A6, 0 0 30px #f7a, 0 0 40px #f7a;
+            }
         }
 
         @keyframes breath {
@@ -144,42 +163,55 @@
             100% { opacity: 0.7; }
         }
 
-        /* Animación de las palabras flotantes */
-        @keyframes floatWord {
-            0% {
-                transform: translateY(100vh) rotate(0deg);
-                opacity: 0;
+        /* Mejoras específicas para móviles */
+        @media (max-width: 768px) {
+            .btn-audio-toggle {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
             }
-            10% { opacity: 0.8; }
-            90% { opacity: 0.8; }
-            100% {
-                transform: translateY(-100px) rotate(360deg);
-                opacity: 0;
+            
+            .message {
+                line-height: 1.1;
             }
         }
 
-        /* Responsivo para celulares */
-        @media (max-width: 600px) {
-            .message { font-size: 3rem; }
-            #click-overlay h1 { font-size: 1.8rem; }
-            .floating-word { font-size: 1rem; }
+        @media (max-width: 480px) {
+            #click-overlay h1 {
+                margin-bottom: 15px;
+            }
+            
+            .btn-audio-toggle {
+                top: 5px;
+                right: 5px;
+                width: 36px;
+                height: 36px;
+            }
+        }
+
+        /* Prevenir zoom en inputs */
+        @media screen and (max-width: 768px) {
+            input, select, textarea {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
 <body>
 
     <canvas id="three-canvas"></canvas>
+    <canvas id="animation-canvas"></canvas>
     
-    <audio id="myAudio" loop>
+    <audio id="myAudio" loop preload="metadata">
         <source src="https://a128-z3.zmdcdn.me/d5e48d317636af55834b87b0fd9fd5fe?authen=exp=1762399955~acl=/d5e48d317636af55834b87b0fd9fd5fe*~hmac=537e951475297463e4a86ebf0646086e" type="audio/mpeg">
         Tu navegador no soporta el audio.
     </audio>
 
+    <div class="loading" id="loading">Cargando...</div>
+
     <button id="toggle-audio" class="btn-audio-toggle">
         <i id="audio-icon" class="fa-solid fa-volume-high"></i>
     </button>
-
-    <div class="floating-words" id="floating-words"></div>
 
     <div class="container" id="click-overlay">
         <h1>Toca para empezar</h1>
@@ -187,141 +219,331 @@
     </div>
 
     <div class="container" id="message-content">
-        <div class="message"></div> </div>
+        <div class="message">I LOVE YOU SO MUCH
+MY ALEJ</div>
+    </div>
 
     <script>
-        // --- SECCIÓN 1: LÓGICA DE INICIO ---
+        // Detectar si es móvil
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // --- SECCIÓN 1: LÓGICA DE INICIO OPTIMIZADA PARA MÓVIL ---
 
         const overlay = document.getElementById('click-overlay');
         const messageContent = document.getElementById('message-content');
-        const messageElement = document.querySelector('.message');
         const audio = document.getElementById('myAudio');
+        const canvas = document.getElementById('animation-canvas');
+        const ctx = canvas.getContext('2d');
         const toggleAudioBtn = document.getElementById('toggle-audio');
         const audioIcon = document.getElementById('audio-icon');
-        const floatingWordsContainer = document.getElementById('floating-words');
-        
+        const loading = document.getElementById('loading');
+
+        let hearts = [];
+        let particles = [];
+        let canvasWidth, canvasHeight;
         let isPlaying = false;
-        let threeScene, threeCamera, threeRenderer, threeParticles;
+        let threeScene, threeCamera, threeRenderer, threeParticles, threeTexts = [];
+        let isInitialized = false;
 
-        // Texto para la máquina de escribir
-        const originalText = "I LOVE YOU SO MUCH\nMY ALEJ";
-
-        // Lista de palabras románticas
-        const romanticWords = [
-            "LOVE", "AMOR", "TI AMO", "TE QUIERO", "FOREVER", 
-            "ETERNITY", "SOULMATE", "DESTINY", "PASSION", "ROMANCE",
-            "ADORE", "CHERISH", "HEART", "SOUL", "TOGETHER", "ALWAYS", 
-            "BEAUTIFUL", "PERFECT", "ANGEL", "DREAM", "MAGIC", "KISS", "HUG"
+        // Lista de palabras optimizada para móvil (menos palabras)
+        const romanticWords = isMobile ? [
+            "FOREVER", "PERFECT", "LOVE", "AMOR", "TI AMO", 
+            "TE QUIERO", "HAPPINESS", "ETERNITY", "SOULMATE"
+        ] : [
+            "FOREVER", "PERFECT", "AFFECTION", "HAPPINESS", "ETERNITY",
+            "LOVE", "AMOR", "TI AMO", "TE QUIERO", "SOULMATE",
+            "DESTINY", "PASSION", "ROMANCE", "DEVOTION", "SWEETHEART"
         ];
 
-        // INICIO: Al hacer clic en la pantalla
-        overlay.addEventListener('click', () => {
-            audio.play();
-            isPlaying = true;
-            toggleAudioBtn.style.display = 'block';
-            overlay.style.display = 'none';
-            messageContent.style.display = 'flex';
-            
-            initThreeScene();     // Inicia el fondo 3D
-            startFloatingWords(); // Inicia las palabras flotantes
-            startTypewriter();    // Inicia el efecto de máquina de escribir
+        // Prevenir comportamiento por defecto en móvil
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
         });
 
-        // Control de audio
-        toggleAudioBtn.addEventListener('click', () => {
+        overlay.addEventListener('click', initExperience);
+        overlay.addEventListener('touchstart', initExperience, { passive: true });
+
+        function initExperience() {
+            if (isInitialized) return;
+            isInitialized = true;
+            
+            loading.style.display = 'block';
+            
+            // Precargar audio
+            audio.load();
+            
+            setTimeout(() => {
+                audio.play().then(() => {
+                    isPlaying = true;
+                    toggleAudioBtn.style.display = 'block';
+                    overlay.style.display = 'none';
+                    messageContent.style.display = 'flex';
+                    loading.style.display = 'none';
+                    startAnimations();
+                    initThreeScene();
+                }).catch(e => {
+                    // Fallback si el audio no puede autoplay
+                    console.log('Audio autoplay bloqueado:', e);
+                    isPlaying = true;
+                    toggleAudioBtn.style.display = 'block';
+                    overlay.style.display = 'none';
+                    messageContent.style.display = 'flex';
+                    loading.style.display = 'none';
+                    startAnimations();
+                    initThreeScene();
+                });
+            }, 500);
+        }
+
+        // Control de audio optimizado para touch
+        toggleAudioBtn.addEventListener('click', toggleAudio);
+        toggleAudioBtn.addEventListener('touchstart', toggleAudio, { passive: true });
+
+        function toggleAudio() {
             if (isPlaying) {
                 audio.pause();
                 audioIcon.className = 'fa-solid fa-volume-xmark';
             } else {
-                audio.play();
+                audio.play().catch(e => {
+                    console.log('Error al reproducir audio:', e);
+                });
                 audioIcon.className = 'fa-solid fa-volume-high';
             }
             isPlaying = !isPlaying;
-        });
+        }
 
-        // --- SECCIÓN 2: PALABRAS FLOTANTES (CSS) ---
+        // --- SECCIÓN 2: ANIMACIONES 2D OPTIMIZADAS PARA MÓVIL ---
 
-        function startFloatingWords() {
-            // Crear palabras flotantes continuamente
-            setInterval(createFloatingWord, 800); // Nueva palabra cada 800ms
-
-            // Llenar la pantalla con algunas palabras iniciales
-            for (let i = 0; i < 15; i++) {
-                setTimeout(createFloatingWord, i * 300);
+        function resizeCanvas() {
+            canvasWidth = window.innerWidth;
+            canvasHeight = window.innerHeight;
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            
+            // Optimizar para móviles menos potentes
+            if (isMobile) {
+                // Reducir número de partículas en móvil
+                if (hearts.length > 30) hearts = hearts.slice(0, 30);
+                if (particles.length > 50) particles = particles.slice(0, 50);
             }
         }
 
-        function createFloatingWord() {
-            const word = document.createElement('div');
-            word.className = 'floating-word';
-            
-            const randomWord = romanticWords[Math.floor(Math.random() * romanticWords.length)];
-            word.textContent = randomWord;
-            
-            word.style.left = (Math.random() * 85 + 5) + '%';
-            word.style.fontSize = (Math.random() * 0.8 + 0.7) + 'rem';
-            word.style.opacity = (Math.random() * 0.4 + 0.4);
-            
-            const duration = Math.random() * 10 + 20; // 20s a 30s
-            word.style.animationDuration = duration + 's';
-            word.style.animationDelay = (Math.random() * 5) + 's';
-            
-            const hue = Math.random() * 20 + 320; // Tonos rosas
-            word.style.color = `hsl(${hue}, 70%, 70%)`;
-            
-            floatingWordsContainer.appendChild(word);
-            
-            // Eliminar palabra después de que termine la animación
-            setTimeout(() => {
-                word.remove();
-            }, (duration + 5) * 1000); // Espera a que termine la anim + delay
+        function drawHeart(x, y, size, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(x + size / 2, y + size / 4);
+            ctx.bezierCurveTo(x + size / 2, y, x, y, x, y + size / 4);
+            ctx.bezierCurveTo(x, y + size / 2, x + size / 2, y + size * 0.75, x + size / 2, y + size);
+            ctx.bezierCurveTo(x + size / 2, y + size * 0.75, x + size, y + size / 2, x + size, y + size / 4);
+            ctx.bezierCurveTo(x + size, y, x + size / 2, y, x + size / 2, y + size / 4);
+            ctx.fill();
+            ctx.closePath();
         }
 
-        // --- SECCIÓN 3: EFECTO MÁQUINA DE ESCRIBIR ---
-
-        function startTypewriter() {
-            let i = 0;
-            messageElement.textContent = ''; // Asegura que esté vacío
-            
-            const typeWriter = () => {
-                if (i < originalText.length) {
-                    messageElement.textContent += originalText.charAt(i);
-                    i++;
-                    setTimeout(typeWriter, 100); // Velocidad de escritura
+        class Heart {
+            constructor() {
+                this.x = Math.random() * canvasWidth;
+                this.y = Math.random() * -canvasHeight - 20;
+                this.size = isMobile ? Math.random() * 15 + 8 : Math.random() * 20 + 10;
+                this.speed = isMobile ? Math.random() * 2 + 0.5 : Math.random() * 3 + 1;
+                this.opacity = Math.random() * 0.5 + 0.3;
+            }
+            update() {
+                this.y += this.speed;
+                if (this.y > canvasHeight) {
+                    this.y = -this.size - 20;
+                    this.x = Math.random() * canvasWidth;
                 }
-            };
-            setTimeout(typeWriter, 500); // Espera medio segundo antes de escribir
+            }
+            draw() {
+                drawHeart(this.x, this.y, this.size, `rgba(238, 102, 166, ${this.opacity})`);
+            }
         }
 
-        // --- SECCIÓN 4: FONDO 3D (THREE.JS) ---
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvasWidth;
+                this.y = Math.random() * canvasHeight + canvasHeight;
+                this.size = isMobile ? Math.random() * 1.5 + 0.3 : Math.random() * 2 + 0.5;
+                this.speedY = isMobile ? Math.random() * -1 - 0.3 : Math.random() * -1.5 - 0.5;
+                this.speedX = (Math.random() - 0.5) * (isMobile ? 0.3 : 0.5);
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y < -this.size) {
+                    this.y = canvasHeight + this.size;
+                    this.x = Math.random() * canvasWidth;
+                }
+                if (this.x < -this.size) { this.x = canvasWidth + this.size; }
+                if (this.x > canvasWidth + this.size) { this.x = -this.size; }
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight); 
+            
+            // Optimizar rendimiento en móvil
+            if (isMobile) {
+                // Dibujar solo cada 2 frames en móviles lentos
+                if (Math.random() > 0.3) {
+                    hearts.forEach(heart => {
+                        heart.update();
+                        heart.draw();
+                    });
+                }
+                
+                particles.forEach(particle => {
+                    particle.update();
+                    particle.draw();
+                });
+            } else {
+                hearts.forEach(heart => {
+                    heart.update();
+                    heart.draw();
+                });
+
+                particles.forEach(particle => {
+                    particle.update();
+                    particle.draw();
+                });
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        function startAnimations() {
+            resizeCanvas(); 
+            if (hearts.length === 0) { 
+                const heartCount = isMobile ? 25 : 50;
+                const particleCount = isMobile ? 60 : 100;
+                
+                for (let i = 0; i < heartCount; i++) {
+                    hearts.push(new Heart());
+                }
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle());
+                }
+            }
+            animate();
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+
+        // --- SECCIÓN 3: THREE.JS OPTIMIZADO PARA MÓVIL ---
 
         function initThreeScene() {
-            threeScene = new THREE.Scene();
-            
-            threeCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            threeCamera.position.z = 5;
-            
-            threeRenderer = new THREE.WebGLRenderer({ 
-                canvas: document.getElementById('three-canvas'),
-                alpha: true, // Fondo transparente
-                antialias: true
-            });
-            threeRenderer.setSize(window.innerWidth, window.innerHeight);
-            threeRenderer.setClearColor(0x000000, 0); // Fondo negro transparente
-            
-            // Crear partículas 3D
-            const particleCount = 500;
+            try {
+                // Crear escena
+                threeScene = new THREE.Scene();
+                
+                // Configuración de cámara optimizada para móvil
+                threeCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, isMobile ? 50 : 100);
+                threeCamera.position.z = isMobile ? 12 : 15;
+                
+                // Renderizador optimizado
+                threeRenderer = new THREE.WebGLRenderer({ 
+                    canvas: document.getElementById('three-canvas'),
+                    alpha: true,
+                    antialias: !isMobile, // Desactivar antialiasing en móvil para mejor rendimiento
+                    powerPreference: "high-performance"
+                });
+                threeRenderer.setSize(window.innerWidth, window.innerHeight);
+                threeRenderer.setClearColor(0x000000, 0);
+                threeRenderer.setPixelRatio(isMobile ? Math.min(2, window.devicePixelRatio) : window.devicePixelRatio);
+                
+                // Crear partículas de fondo optimizadas
+                createBackgroundParticles();
+                
+                // Crear textos 3D (más simples en móvil)
+                createFloatingTexts();
+                
+                // Luces optimizadas
+                const ambientLight = new THREE.AmbientLight(0xffffff, isMobile ? 0.7 : 0.6);
+                threeScene.add(ambientLight);
+                
+                const pointLight = new THREE.PointLight(0xEE66A6, isMobile ? 1 : 1.5, 100);
+                pointLight.position.set(10, 10, 10);
+                threeScene.add(pointLight);
+                
+                // Animación optimizada para móvil
+                let lastTime = 0;
+                const fpsInterval = 1000 / (isMobile ? 30 : 60); // 30 FPS en móvil, 60 en desktop
+                
+                function animateThree(currentTime) {
+                    requestAnimationFrame(animateThree);
+                    
+                    const delta = currentTime - lastTime;
+                    if (delta < fpsInterval) return;
+                    
+                    lastTime = currentTime - (delta % fpsInterval);
+                    
+                    // Rotar partículas de fondo (más lento en móvil)
+                    if (threeParticles) {
+                        threeParticles.rotation.x += isMobile ? 0.0003 : 0.0005;
+                        threeParticles.rotation.y += isMobile ? 0.0006 : 0.001;
+                    }
+                    
+                    // Animar textos 3D (menos intenso en móvil)
+                    threeTexts.forEach((textObj, index) => {
+                        const time = currentTime * 0.001;
+                        textObj.mesh.position.y += Math.sin(time + index) * (isMobile ? 0.005 : 0.01);
+                        textObj.mesh.rotation.y += isMobile ? 0.003 : 0.005;
+                        
+                        const pulse = Math.sin(time * 0.5 + index) * 0.3 + 0.7;
+                        textObj.mesh.material.opacity = pulse * 0.8;
+                    });
+                    
+                    // Mover cámara (más suave en móvil)
+                    threeCamera.position.x = Math.sin(currentTime * 0.0002) * (isMobile ? 2 : 3);
+                    threeCamera.position.y = Math.cos(currentTime * 0.00015) * (isMobile ? 1 : 2);
+                    threeCamera.lookAt(threeScene.position);
+                    
+                    threeRenderer.render(threeScene, threeCamera);
+                }
+                
+                animateThree(0);
+                
+                window.addEventListener('resize', () => {
+                    threeCamera.aspect = window.innerWidth / window.innerHeight;
+                    threeCamera.updateProjectionMatrix();
+                    threeRenderer.setSize(window.innerWidth, window.innerHeight);
+                });
+                
+            } catch (error) {
+                console.error('Error inicializando Three.js:', error);
+                // Fallback si Three.js falla
+                document.getElementById('three-canvas').style.display = 'none';
+            }
+        }
+
+        function createBackgroundParticles() {
+            const particleCount = isMobile ? 300 : 800;
             const positions = new Float32Array(particleCount * 3);
             const colors = new Float32Array(particleCount * 3);
             
             for (let i = 0; i < particleCount * 3; i += 3) {
-                positions[i] = (Math.random() - 0.5) * 50;
-                positions[i + 1] = (Math.random() - 0.5) * 50;
-                positions[i + 2] = (Math.random() - 0.5) * 50;
+                positions[i] = (Math.random() - 0.5) * (isMobile ? 60 : 100);
+                positions[i + 1] = (Math.random() - 0.5) * (isMobile ? 60 : 100);
+                positions[i + 2] = (Math.random() - 0.5) * (isMobile ? 60 : 100);
                 
-                colors[i] = 0.93; // R (rosa)
-                colors[i + 1] = 0.4;  // G
-                colors[i + 2] = 0.65; // B
+                colors[i] = 0.9 + Math.random() * 0.1;
+                colors[i + 1] = 0.3 + Math.random() * 0.3;
+                colors[i + 2] = 0.5 + Math.random() * 0.3;
             }
             
             const geometry = new THREE.BufferGeometry();
@@ -329,47 +551,102 @@
             geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
             
             const material = new THREE.PointsMaterial({
-                size: 0.1,
+                size: isMobile ? 0.08 : 0.1,
                 vertexColors: true,
                 transparent: true,
-                opacity: 0.8
+                opacity: isMobile ? 0.5 : 0.6,
+                sizeAttenuation: true
             });
             
             threeParticles = new THREE.Points(geometry, material);
             threeScene.add(threeParticles);
-            
-            // Iniciar animación 3D
-            animateThree();
         }
 
-        function animateThree() {
-            requestAnimationFrame(animateThree);
+        function createFloatingTexts() {
+            const loader = new THREE.FontLoader();
             
-            // Nube de partículas rotatoria
-            threeParticles.rotation.x += 0.0005;
-            threeParticles.rotation.y += 0.001;
-
-            // Movimiento sutil de la cámara
-            threeCamera.position.x = Math.sin(Date.now() * 0.0003) * 2;
-            threeCamera.position.y = Math.cos(Date.now() * 0.0002) * 1;
-            threeCamera.lookAt(threeScene.position);
-            
-            threeRenderer.render(threeScene, threeCamera);
+            loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+                romanticWords.forEach((word, index) => {
+                    createText3D(font, word, index);
+                });
+            }, undefined, (error) => {
+                console.error('Error cargando fuente:', error);
+            });
         }
-        
-        // Ajustar todo si la ventana cambia de tamaño
-        window.addEventListener('resize', () => {
-            canvasWidth = window.innerWidth;
-            canvasHeight = window.innerHeight;
 
-            // Ajustar 3D
-            if (threeRenderer) {
-                threeCamera.aspect = canvasWidth / canvasHeight;
-                threeCamera.updateProjectionMatrix();
-                threeRenderer.setSize(canvasWidth, canvasHeight);
-            }
+        function createText3D(font, text, index) {
+            const textGeometry = new THREE.TextGeometry(text, {
+                font: font,
+                size: isMobile ? 0.8 : 1.2,
+                height: isMobile ? 0.1 : 0.2,
+                curveSegments: isMobile ? 8 : 12,
+                bevelEnabled: !isMobile, // Sin bisel en móvil para mejor rendimiento
+                bevelThickness: 0.03,
+                bevelSize: 0.02,
+                bevelOffset: 0,
+                bevelSegments: 5
+            });
+            
+            textGeometry.computeBoundingBox();
+            const centerOffset = -0.5 * (textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x);
+            textGeometry.translate(centerOffset, 0, 0);
+            
+            const material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color().setHSL(
+                    Math.random() * 0.1 + 0.9,
+                    Math.random() * 0.3 + 0.7,
+                    Math.random() * 0.2 + 0.6
+                ),
+                specular: 0xffffff,
+                shininess: isMobile ? 80 : 100,
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            const mesh = new THREE.Mesh(textGeometry, material);
+            
+            mesh.position.x = (Math.random() - 0.5) * (isMobile ? 25 : 40);
+            mesh.position.y = (Math.random() - 0.5) * (isMobile * 15 : 20);
+            mesh.position.z = (Math.random() - 0.5) * (isMobile ? 20 : 30);
+            
+            mesh.rotation.x = Math.random() * Math.PI;
+            mesh.rotation.y = Math.random() * Math.PI;
+            
+            const scale = (Math.random() * 0.8 + 0.6) * (isMobile ? 0.8 : 1);
+            mesh.scale.set(scale, scale, scale);
+            
+            threeScene.add(mesh);
+            threeTexts.push({ mesh: mesh, originalScale: scale });
+        }
+
+        // Efecto de escritura para el mensaje
+        document.addEventListener('DOMContentLoaded', () => {
+            const message = document.querySelector('.message');
+            const originalText = message.textContent;
+            message.textContent = '';
+            
+            let i = 0;
+            const typeWriter = () => {
+                if (i < originalText.length) {
+                    message.textContent += originalText.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, isMobile ? 120 : 100);
+                }
+            };
+            
+            overlay.addEventListener('click', () => {
+                setTimeout(typeWriter, 800);
+            });
         });
 
+        // Precargar recursos
+        window.addEventListener('load', () => {
+            // Precargar fuente
+            const fontLoader = new THREE.FontLoader();
+            fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json');
+        });
     </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </body>
 </html>
