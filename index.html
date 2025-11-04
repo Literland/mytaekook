@@ -3,30 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>For My Love</title>
+    <title>Para Mi Amor - ALEJ</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-        /* Estilos base optimizados para móvil */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body, html {
             height: 100%;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: #000000;
             color: #FFF;
-            font-family: 'Mali', 'Courier New', monospace;
+            font-family: 'Mali', cursive;
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
-            -webkit-text-size-adjust: 100%;
             touch-action: manipulation;
         }
 
-        /* Canvas para el efecto 3D */
+        /* Canvas 3D */
         #three-canvas {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
@@ -34,487 +38,521 @@
             z-index: 0;
         }
 
-        /* Contenedor principal centrado */
+        /* Contenedores */
         .container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            height: 100%;
-            width: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
+            z-index: 10;
             padding: 20px;
-            box-sizing: border-box;
-            z-index: 2;
         }
 
-        /* 1. Pantalla de "Clic para empezar" */
+        /* Pantalla inicial */
         #click-overlay {
+            background: rgba(0, 0, 0, 0.7);
             cursor: pointer;
-            z-index: 10;
-            background: rgba(0, 0, 0, 0.4);
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
+            transition: all 0.5s ease;
         }
-        
+
         #click-overlay h1 {
-            font-size: clamp(1.8rem, 6vw, 2.5rem);
-            color: #f8b7d8;
+            font-size: clamp(2rem, 8vw, 4rem);
+            color: #ff85b3;
             margin-bottom: 20px;
             animation: pulse 2s infinite ease-in-out;
-            text-shadow: 0 2px 10px rgba(248, 183, 216, 0.5);
+            text-shadow: 0 0 20px #ff6ba1;
         }
 
         #click-overlay p {
-            font-size: clamp(1rem, 4vw, 1.2rem);
-            color: #d8bfd8;
-            margin: 0;
+            font-size: clamp(1rem, 4vw, 1.5rem);
+            color: #f8b7d8;
+            margin: 10px 0;
         }
 
-        /* 2. Contenido del Mensaje (oculto al inicio) */
+        /* Mensaje principal - SIN RECUADRO */
         #message-content {
             display: none;
-            z-index: 5;
         }
 
-        /* El Mensaje principal */
         .message {
-            font-size: clamp(2rem, 10vw, 4rem);
-            font-weight: bold;
-            color: #f8b7d8;
-            text-shadow: 0 0 15px #ff9ec5, 0 0 30px #ff85b3, 0 0 45px #ff6ba1;
-            animation: glow 2s infinite alternate, 
-                         breath 4s infinite alternate ease-in-out;
-            white-space: pre-wrap;
-            line-height: 1.3;
-            text-align: center;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            -webkit-backdrop-filter: blur(15px);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            max-width: 90%;
-        }
-
-        /* Botón de control de audio optimizado para touch */
-        .btn-audio-toggle {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            z-index: 100;
-            background: rgba(248, 183, 216, 0.2);
-            border: 2px solid rgba(248, 183, 216, 0.5);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            cursor: pointer;
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            color: #f8b7d8;
-            font-size: 1.2rem;
-            display: none;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
-            box-shadow: 0 4px 15px rgba(248, 183, 216, 0.3);
-        }
-
-        .btn-audio-toggle:active {
-            transform: scale(0.92);
-            background: rgba(248, 183, 216, 0.3);
-        }
-
-        /* Palabras "TE AMO" que aparecen al hacer click */
-        .te-amo-popup {
-            position: absolute;
-            font-size: 1.8rem;
-            font-weight: bold;
+            font-size: clamp(2.5rem, 10vw, 6rem);
+            font-weight: 700;
             color: #ff9ec5;
-            text-shadow: 0 0 10px rgba(255, 158, 197, 0.7);
-            pointer-events: none;
-            z-index: 3;
-            animation: popupFloat 3s ease-out forwards;
-            font-family: 'Mali', cursive;
+            text-shadow: 
+                0 0 20px #ff6ba1,
+                0 0 40px #ff85b3,
+                0 0 60px #ff9ec5;
+            animation: 
+                glow 3s ease-in-out infinite alternate,
+                float 6s ease-in-out infinite;
+            line-height: 1.2;
+            text-align: center;
+            white-space: pre-wrap;
         }
 
-        /* Palabras flotantes estilo LoveLoom */
-        .floating-words {
-            position: absolute;
+        /* Botón de audio */
+        .btn-audio-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(255, 158, 197, 0.3);
+            border: 2px solid #ff9ec5;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 1.5rem;
+            display: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(255, 158, 197, 0.5);
+        }
+
+        .btn-audio-toggle:hover {
+            transform: scale(1.1);
+            background: rgba(255, 158, 197, 0.5);
+        }
+
+        /* Efectos de partículas 2D */
+        #particles-2d {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 1;
+            z-index: 5;
         }
 
-        .floating-word {
-            position: absolute;
-            font-size: 1.2rem;
-            color: #f8b7d8;
-            font-weight: 600;
-            opacity: 0;
-            text-shadow: 0 0 8px rgba(248, 183, 216, 0.5);
-            animation: floatWord 20s infinite linear;
-            font-family: 'Mali', cursive;
-        }
-
-        /* Loading indicator */
+        /* Loading */
         .loading {
-            position: absolute;
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #f8b7d8;
-            font-size: 1.2rem;
+            color: #ff9ec5;
+            font-size: 1.5rem;
             z-index: 20;
             display: none;
         }
 
-        /* Animaciones optimizadas */
+        /* Animaciones */
         @keyframes glow {
-            from {
-                text-shadow: 0 0 15px #ff9ec5, 0 0 30px #ff85b3, 0 0 45px #ff6ba1;
+            0%, 100% {
+                text-shadow: 
+                    0 0 20px #ff6ba1,
+                    0 0 40px #ff85b3,
+                    0 0 60px #ff9ec5;
             }
-            to {
-                text-shadow: 0 0 25px #ff9ec5, 0 0 50px #ff85b3, 0 0 75px #ff6ba1;
+            50% {
+                text-shadow: 
+                    0 0 30px #ff6ba1,
+                    0 0 60px #ff85b3,
+                    0 0 90px #ff9ec5;
             }
         }
 
-        @keyframes breath {
-            from { transform: scale(1); }
-            to { transform: scale(1.05); }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(2deg); }
         }
 
         @keyframes pulse {
-            0% { opacity: 0.7; transform: scale(1); }
+            0%, 100% { opacity: 0.8; transform: scale(1); }
             50% { opacity: 1; transform: scale(1.05); }
-            100% { opacity: 0.7; transform: scale(1); }
         }
 
-        @keyframes popupFloat {
-            0% {
-                opacity: 0;
-                transform: translateY(0) scale(0.5) rotate(-10deg);
-            }
-            20% {
-                opacity: 1;
-                transform: translateY(-20px) scale(1.1) rotate(5deg);
-            }
-            80% {
-                opacity: 0.8;
-                transform: translateY(-80px) scale(1) rotate(0deg);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(-120px) scale(0.8) rotate(10deg);
-            }
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
         }
 
-        @keyframes floatWord {
-            0% {
-                transform: translateY(100vh) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 0.8;
-            }
-            90% {
-                opacity: 0.8;
-            }
-            100% {
-                transform: translateY(-100px) rotate(360deg);
-                opacity: 0;
-            }
-        }
-
-        /* Mejoras específicas para móviles */
+        /* Responsive */
         @media (max-width: 768px) {
             .btn-audio-toggle {
-                width: 45px;
-                height: 45px;
-                font-size: 1.1rem;
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+                top: 15px;
+                right: 15px;
             }
             
             .message {
-                font-size: clamp(1.8rem, 8vw, 3.5rem);
-                line-height: 1.2;
-                padding: 15px;
-            }
-
-            .te-amo-popup {
-                font-size: 1.5rem;
-            }
-
-            .floating-word {
-                font-size: 1rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            #click-overlay {
-                padding: 20px;
-            }
-            
-            #click-overlay h1 {
-                margin-bottom: 15px;
-            }
-            
-            .btn-audio-toggle {
-                top: 10px;
-                right: 10px;
-                width: 40px;
-                height: 40px;
-            }
-
-            .message {
-                font-size: clamp(1.5rem, 7vw, 3rem);
-                padding: 12px;
+                font-size: clamp(2rem, 9vw, 4rem);
             }
         }
     </style>
 </head>
 <body>
-
+    <!-- Canvas para Three.js -->
     <canvas id="three-canvas"></canvas>
     
-    <!-- Audio con la música original -->
+    <!-- Canvas para partículas 2D -->
+    <canvas id="particles-2d"></canvas>
+
+    <!-- Audio -->
     <audio id="myAudio" loop>
         <source src="https://a128-z3.zmdcdn.me/d5e48d317636af55834b87b0fd9fd5fe?authen=exp=1762399955~acl=/d5e48d317636af55834b87b0fd9fd5fe*~hmac=537e951475297463e4a86ebf0646086e" type="audio/mpeg">
-        Tu navegador no soporta el audio.
     </audio>
 
-    <div class="loading" id="loading">Cargando amor... 💖</div>
+    <!-- Loading -->
+    <div class="loading" id="loading">
+        <i class="fas fa-heart fa-beat" style="color: #ff6ba1;"></i> Cargando nuestro amor...
+    </div>
 
+    <!-- Botón de audio -->
     <button id="toggle-audio" class="btn-audio-toggle">
-        <i id="audio-icon" class="fa-solid fa-volume-high"></i>
+        <i id="audio-icon" class="fas fa-volume-high"></i>
     </button>
 
-    <!-- Contenedor para palabras flotantes -->
-    <div class="floating-words" id="floating-words"></div>
-
+    <!-- Pantalla inicial -->
     <div class="container" id="click-overlay">
-        <h1>Toca para empezar</h1>
-        <p>(Presiona aquí para nuestro momento especial)</p>
+        <div>
+            <h1>💖 Toca Nuestro Amor 💖</h1>
+            <p>Presiona para comenzar nuestro viaje especial</p>
+            <p style="font-size: 1.2rem; margin-top: 20px;">
+                Con todo mi amor para ti, ALEJ 💕
+            </p>
+        </div>
     </div>
 
+    <!-- Mensaje principal -->
     <div class="container" id="message-content">
-        <div class="message">I LOVE YOU SO MUCH
-MY ALEJ</div>
+        <div class="message">I LOVE YOU SO MUCH\nMY ALEJ</div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // Detectar si es móvil
+        // ========== CONFIGURACIÓN INICIAL ==========
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        // Variables globales
+        // Elementos DOM
         const overlay = document.getElementById('click-overlay');
         const messageContent = document.getElementById('message-content');
         const audio = document.getElementById('myAudio');
         const toggleAudioBtn = document.getElementById('toggle-audio');
         const audioIcon = document.getElementById('audio-icon');
         const loading = document.getElementById('loading');
-        const floatingWordsContainer = document.getElementById('floating-words');
+        const particles2dCanvas = document.getElementById('particles-2d');
+        const ctx2d = particles2dCanvas.getContext('2d');
 
+        // Variables globales
         let isPlaying = false;
         let isInitialized = false;
-        let scene, camera, renderer, particles, floatingTexts = [];
+        let scene, camera, renderer, controls;
+        let hearts3D = [], floatingTexts = [], particles2d = [];
         let mouseX = 0, mouseY = 0;
         let windowHalfX = window.innerWidth / 2;
         let windowHalfY = window.innerHeight / 2;
 
-        // Colores pastel para el efecto
+        // Colores pastel románticos
         const pastelColors = [
-            '#FFB6C1', '#FFD1DC', '#FFECF1', '#F8C8DC', 
-            '#F4A6B8', '#FF9EC5', '#F8B7D8', '#FFD6E8',
-            '#E6B8C9', '#F2C2D1', '#FFCCD5', '#FFDFE3'
+            '#FFB6C1', '#FFD1DC', '#FF9EC5', '#F8C8DC', '#F4A6B8',
+            '#FF85B3', '#FF6BA1', '#FFB7C5', '#FFCCD5', '#FFDFE3'
         ];
 
-        // Lista completa de palabras románticas
+        // Palabras románticas
         const romanticWords = [
-            "TE AMO", "FOREVER", "LOVE", "AMOR", "TI AMO", "TE QUIERO", 
-            "SOULMATE", "DESTINY", "PASSION", "ROMANCE", "DEVOTION", 
-            "AFFECTION", "SWEETHEART", "DARLING", "BELOVED", "ADORE", 
-            "CHERISH", "TREASURE", "HEART", "SOUL", "TOGETHER", "ALWAYS", 
-            "FOREVER", "INFINITY", "HAPPINESS", "JOY", "BLISS", "ECSTASY", 
-            "PARADISE", "HEAVEN", "BEAUTIFUL", "PERFECT", "ANGEL", "DREAM", 
-            "MAGIC", "KISS", "HUG", "TOUCH", "SMILE", "LAUGH", "FOREVER YOURS", 
-            "MY EVERYTHING", "MY WORLD", "MY HEART", "MY SOUL", "ETERNITY",
-            "PERFECT", "HAPPINESS", "AFFECTION", "FOREVER NOTION"
+            "TE AMO", "FOREVER", "LOVE", "AMOR", "TI AMO", "TE QUIERO",
+            "SOULMATE", "DESTINY", "PASSION", "ROMANCE", "DEVOTION",
+            "AFFECTION", "SWEETHEART", "DARLING", "BELOVED", "ADORE",
+            "CHERISH", "TREASURE", "HEART", "SOUL", "TOGETHER", "ALWAYS",
+            "ETERNITY", "HAPPINESS", "JOY", "BLISS", "BEAUTIFUL", "PERFECT",
+            "ANGEL", "DREAM", "MAGIC", "KISS", "HUG", "SMILE", "LAUGH"
         ];
 
-        // Configurar audio
-        audio.muted = false;
-
-        // Eventos para iniciar la experiencia
-        overlay.addEventListener('click', startExperience);
-        overlay.addEventListener('touchend', startExperience, { passive: false });
-
-        function startExperience() {
+        // ========== INICIALIZACIÓN ==========
+        function init() {
             if (isInitialized) return;
-            
-            console.log("Iniciando experiencia...");
             isInitialized = true;
-            
-            // Mostrar loading
+
             loading.style.display = 'block';
-            overlay.style.opacity = '0.7';
             
-            // Iniciar todo inmediatamente
-            initThreeScene();
-            startFloatingWords();
+            // Iniciar Three.js inmediatamente
+            initThreeJS();
+            
+            // Iniciar partículas 2D
+            initParticles2D();
             
             // Intentar reproducir audio
             playAudio();
         }
 
         function playAudio() {
-            console.log("Intentando reproducir audio...");
-            
-            // En móvil, necesitamos user interaction
             audio.play().then(() => {
-                console.log("Audio reproducido exitosamente");
                 completeInitialization();
             }).catch(error => {
-                console.log("Error en reproducción automática:", error);
-                // En móvil, mostramos el botón para que el usuario active el audio manualmente
+                console.log('Audio requiere interacción:', error);
                 completeInitialization();
             });
         }
 
         function completeInitialization() {
-            console.log("Completando inicialización...");
-            
-            // Ocultar loading y overlay
             loading.style.display = 'none';
             overlay.style.display = 'none';
-            
-            // Mostrar contenido principal
             messageContent.style.display = 'flex';
             toggleAudioBtn.style.display = 'block';
             isPlaying = true;
             
-            // Iniciar efectos
             startTypewriter();
-            createInitialTeAmo();
+            animateParticles2D();
         }
 
-        // Sistema de palabras flotantes 2D
-        function startFloatingWords() {
-            // Crear palabras flotantes continuamente
-            setInterval(() => {
-                createFloatingWord();
-            }, 1000);
+        // ========== THREE.JS - EFECTO 3D INMERSIVO ==========
+        function initThreeJS() {
+            // Escena
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000);
+            scene.fog = new THREE.Fog(0x000000, 50, 300);
 
-            // Crear palabras iniciales
-            for (let i = 0; i < 20; i++) {
-                setTimeout(() => {
-                    createFloatingWord();
-                }, i * 300);
-            }
+            // Cámara
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 0, 50);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: document.getElementById('three-canvas'),
+                alpha: true,
+                antialias: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+
+            // Luces
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xff9ec5, 1);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+
+            const pointLight = new THREE.PointLight(0xff6ba1, 1, 100);
+            pointLight.position.set(0, 0, 50);
+            scene.add(pointLight);
+
+            // Crear corazones 3D
+            createHearts3D();
+
+            // Crear textos 3D flotantes
+            createFloatingTexts3D();
+
+            // Eventos de movimiento
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('touchmove', onTouchMove, { passive: true });
+
+            // Animación
+            animateThreeJS();
+
+            // Resize
+            window.addEventListener('resize', onWindowResize);
         }
 
-        function createFloatingWord() {
-            const word = document.createElement('div');
-            word.className = 'floating-word';
-            
-            const randomWord = romanticWords[Math.floor(Math.random() * romanticWords.length)];
-            word.textContent = randomWord;
-            
-            const left = Math.random() * 85 + 5;
-            word.style.left = left + '%';
-            
-            const size = Math.random() * 0.8 + 0.7;
-            word.style.fontSize = size + 'rem';
-            
-            const opacity = Math.random() * 0.4 + 0.4;
-            word.style.opacity = opacity;
-            
-            const duration = Math.random() * 10 + 20;
-            word.style.animationDuration = duration + 's';
-            
-            const delay = Math.random() * 5;
-            word.style.animationDelay = delay + 's';
-            
-            const hue = Math.random() * 20 + 320;
-            const saturation = Math.random() * 30 + 60;
-            const lightness = Math.random() * 20 + 60;
-            word.style.color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-            
-            floatingWordsContainer.appendChild(word);
-            
-            setTimeout(() => {
-                if (word.parentNode) {
-                    word.parentNode.removeChild(word);
-                }
-            }, (duration + delay) * 1000);
-        }
+        function createHearts3D() {
+            const heartShape = new THREE.Shape();
+            heartShape.moveTo(0, 0);
+            heartShape.bezierCurveTo(2, 2, 4, 0, 0, -4);
+            heartShape.bezierCurveTo(-4, 0, -2, 2, 0, 0);
 
-        // Función para crear popup "TE AMO"
-        function createTeAmoPopup(x, y) {
-            const teAmo = document.createElement('div');
-            teAmo.className = 'te-amo-popup';
-            teAmo.textContent = 'TE AMO';
-            teAmo.style.left = x + 'px';
-            teAmo.style.top = y + 'px';
-            teAmo.style.color = pastelColors[Math.floor(Math.random() * pastelColors.length)];
-            
-            document.body.appendChild(teAmo);
-            
-            setTimeout(() => {
-                if (teAmo.parentNode) {
-                    teAmo.parentNode.removeChild(teAmo);
-                }
-            }, 3000);
-        }
+            const extrudeSettings = {
+                depth: 0.5,
+                bevelEnabled: true,
+                bevelThickness: 0.1,
+                bevelSize: 0.1,
+                bevelSegments: 8
+            };
 
-        function createInitialTeAmo() {
-            for (let i = 0; i < 5; i++) {
-                setTimeout(() => {
-                    const x = Math.random() * window.innerWidth;
-                    const y = Math.random() * window.innerHeight;
-                    createTeAmoPopup(x, y);
-                }, i * 800);
-            }
-        }
-
-        // Evento para crear "TE AMO" al hacer click/touch
-        document.addEventListener('click', (e) => {
-            if (isInitialized) {
-                createTeAmoPopup(e.clientX, e.clientY);
-            }
-        });
-
-        document.addEventListener('touchstart', (e) => {
-            if (isInitialized && e.touches.length === 1) {
-                createTeAmoPopup(e.touches[0].clientX, e.touches[0].clientY);
-            }
-        }, { passive: true });
-
-        // Control de audio
-        toggleAudioBtn.addEventListener('click', toggleAudio);
-        toggleAudioBtn.addEventListener('touchstart', toggleAudio, { passive: true });
-
-        function toggleAudio() {
-            if (isPlaying) {
-                audio.pause();
-                audioIcon.className = 'fa-solid fa-volume-xmark';
-            } else {
-                audio.play().catch(e => {
-                    console.log('Error al reproducir audio:', e);
+            for (let i = 0; i < 50; i++) {
+                const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+                const material = new THREE.MeshPhongMaterial({
+                    color: new THREE.Color(pastelColors[Math.floor(Math.random() * pastelColors.length)]),
+                    transparent: true,
+                    opacity: 0.8,
+                    shininess: 100
                 });
-                audioIcon.className = 'fa-solid fa-volume-high';
+
+                const heart = new THREE.Mesh(geometry, material);
+                
+                // Posición aleatoria en una esfera
+                const radius = 30 + Math.random() * 50;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                
+                heart.position.x = radius * Math.sin(phi) * Math.cos(theta);
+                heart.position.y = radius * Math.sin(phi) * Math.sin(theta);
+                heart.position.z = radius * Math.cos(phi);
+                
+                heart.rotation.x = Math.random() * Math.PI;
+                heart.rotation.y = Math.random() * Math.PI;
+                
+                heart.userData = {
+                    originalPosition: heart.position.clone(),
+                    speed: Math.random() * 0.02 + 0.01,
+                    angle: Math.random() * Math.PI * 2
+                };
+
+                scene.add(heart);
+                hearts3D.push(heart);
             }
-            isPlaying = !isPlaying;
         }
 
-        // Efecto de máquina de escribir
+        function createFloatingTexts3D() {
+            // Usaremos esferas como placeholder para textos
+            // En una implementación real, cargaríamos fuentes 3D
+            romanticWords.forEach((word, index) => {
+                const geometry = new THREE.SphereGeometry(1, 8, 6);
+                const material = new THREE.MeshPhongMaterial({
+                    color: new THREE.Color(pastelColors[index % pastelColors.length]),
+                    transparent: true,
+                    opacity: 0.7
+                });
+
+                const textMesh = new THREE.Mesh(geometry, material);
+                
+                const radius = 40 + Math.random() * 60;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                
+                textMesh.position.x = radius * Math.sin(phi) * Math.cos(theta);
+                textMesh.position.y = radius * Math.sin(phi) * Math.sin(theta);
+                textMesh.position.z = radius * Math.cos(phi);
+                
+                textMesh.userData = {
+                    originalPosition: textMesh.position.clone(),
+                    speed: Math.random() * 0.01 + 0.005,
+                    angle: Math.random() * Math.PI * 2,
+                    word: word
+                };
+
+                scene.add(textMesh);
+                floatingTexts.push(textMesh);
+            });
+        }
+
+        function onMouseMove(event) {
+            mouseX = (event.clientX - windowHalfX) * 0.0005;
+            mouseY = (event.clientY - windowHalfY) * 0.0005;
+        }
+
+        function onTouchMove(event) {
+            if (event.touches.length === 1) {
+                mouseX = (event.touches[0].clientX - windowHalfX) * 0.0005;
+                mouseY = (event.touches[0].clientY - windowHalfY) * 0.0005;
+            }
+        }
+
+        function animateThreeJS() {
+            requestAnimationFrame(animateThreeJS);
+
+            const time = Date.now() * 0.001;
+
+            // Animar corazones
+            hearts3D.forEach((heart, index) => {
+                heart.rotation.y += 0.01;
+                heart.rotation.x = Math.sin(time + index) * 0.1;
+                
+                // Movimiento flotante
+                heart.position.y = heart.userData.originalPosition.y + Math.sin(time + index) * 2;
+                heart.position.x = heart.userData.originalPosition.x + Math.cos(time * 0.7 + index) * 1.5;
+                
+                // Pulsación
+                const scale = 1 + Math.sin(time * 2 + index) * 0.2;
+                heart.scale.setScalar(scale);
+            });
+
+            // Animar textos
+            floatingTexts.forEach((text, index) => {
+                text.rotation.y += 0.005;
+                text.position.y = text.userData.originalPosition.y + Math.sin(time + index) * 3;
+            });
+
+            // Movimiento de cámara inmersivo
+            camera.position.x += (mouseX * 100 - camera.position.x) * 0.05;
+            camera.position.y += (-mouseY * 100 - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            windowHalfX = window.innerWidth / 2;
+            windowHalfY = window.innerHeight / 2;
+
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // ========== PARTÍCULAS 2D - CORAZONES ==========
+        function initParticles2D() {
+            particles2dCanvas.width = window.innerWidth;
+            particles2dCanvas.height = window.innerHeight;
+
+            // Crear partículas de corazones
+            for (let i = 0; i < 30; i++) {
+                particles2d.push({
+                    x: Math.random() * particles2dCanvas.width,
+                    y: Math.random() * particles2dCanvas.height,
+                    size: Math.random() * 20 + 10,
+                    speed: Math.random() * 2 + 0.5,
+                    color: pastelColors[Math.floor(Math.random() * pastelColors.length)],
+                    opacity: Math.random() * 0.5 + 0.3,
+                    rotation: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        function drawHeart2D(ctx, x, y, size, color, rotation) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rotation);
+            ctx.scale(size / 20, size / 20);
+            
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            for (let i = 0; i < 30; i++) {
+                const t = i / 30 * Math.PI * 2;
+                const px = 16 * Math.pow(Math.sin(t), 3);
+                const py = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+                if (i === 0) {
+                    ctx.moveTo(px, py);
+                } else {
+                    ctx.lineTo(px, py);
+                }
+            }
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        function animateParticles2D() {
+            ctx2d.clearRect(0, 0, particles2dCanvas.width, particles2dCanvas.height);
+
+            particles2d.forEach(particle => {
+                particle.y -= particle.speed;
+                particle.rotation += 0.02;
+
+                if (particle.y < -particle.size) {
+                    particle.y = particles2dCanvas.height + particle.size;
+                    particle.x = Math.random() * particles2dCanvas.width;
+                }
+
+                drawHeart2D(ctx2d, particle.x, particle.y, particle.size, particle.color, particle.rotation);
+            });
+
+            requestAnimationFrame(animateParticles2D);
+        }
+
+        // ========== EFECTO MÁQUINA DE ESCRIBIR ==========
         function startTypewriter() {
             const message = document.querySelector('.message');
             const originalText = message.textContent;
@@ -523,131 +561,39 @@ MY ALEJ</div>
             let i = 0;
             const typeWriter = () => {
                 if (i < originalText.length) {
-                    message.textContent += originalText.charAt(i);
+                    if (originalText.charAt(i) === '\\' && originalText.charAt(i + 1) === 'n') {
+                        message.textContent += '\n';
+                        i++;
+                    } else {
+                        message.textContent += originalText.charAt(i);
+                    }
                     i++;
-                    setTimeout(typeWriter, isMobile ? 120 : 100);
+                    setTimeout(typeWriter, 100);
                 }
             };
-            setTimeout(typeWriter, 500);
+            setTimeout(typeWriter, 1000);
         }
 
-        // THREE.JS - Efecto 3D mejorado para móvil
-        function initThreeScene() {
-            try {
-                // Escena
-                scene = new THREE.Scene();
-                
-                // Cámara
-                camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
-                camera.position.z = 50;
-                
-                // Renderer
-                renderer = new THREE.WebGLRenderer({ 
-                    canvas: document.getElementById('three-canvas'),
-                    alpha: true,
-                    antialias: true,
-                    powerPreference: "high-performance"
-                });
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
-                
-                // Crear partículas de fondo
-                createParticles();
-                
-                // Luces
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-                scene.add(ambientLight);
-                
-                const directionalLight = new THREE.DirectionalLight(0xff9ec5, 0.8);
-                directionalLight.position.set(1, 1, 1);
-                scene.add(directionalLight);
-                
-                // Eventos para movimiento 3D
-                document.addEventListener('mousemove', onDocumentMouseMove);
-                document.addEventListener('touchmove', onDocumentTouchMove, { passive: true });
-                
-                // Animación
-                animate();
-                
-                // Resize handler
-                window.addEventListener('resize', onWindowResize);
-                
-            } catch (error) {
-                console.error('Error en Three.js:', error);
+        // ========== EVENT LISTENERS ==========
+        overlay.addEventListener('click', init);
+        overlay.addEventListener('touchend', init, { passive: false });
+
+        toggleAudioBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                audio.pause();
+                audioIcon.className = 'fas fa-volume-mute';
+            } else {
+                audio.play();
+                audioIcon.className = 'fas fa-volume-high';
             }
-        }
+            isPlaying = !isPlaying;
+        });
 
-        function createParticles() {
-            const particlesCount = isMobile ? 500 : 1000;
-            const positions = new Float32Array(particlesCount * 3);
-            const colors = new Float32Array(particlesCount * 3);
-            
-            for (let i = 0; i < particlesCount * 3; i += 3) {
-                positions[i] = (Math.random() - 0.5) * 200;
-                positions[i + 1] = (Math.random() - 0.5) * 200;
-                positions[i + 2] = (Math.random() - 0.5) * 200;
-                
-                const color = new THREE.Color(pastelColors[Math.floor(Math.random() * pastelColors.length)]);
-                colors[i] = color.r;
-                colors[i + 1] = color.g;
-                colors[i + 2] = color.b;
-            }
-            
-            const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            
-            const material = new THREE.PointsMaterial({
-                size: 2,
-                vertexColors: true,
-                transparent: true,
-                opacity: 0.6,
-                sizeAttenuation: true
-            });
-            
-            particles = new THREE.Points(geometry, material);
-            scene.add(particles);
-        }
-
-        function onDocumentMouseMove(event) {
-            mouseX = (event.clientX - windowHalfX) * 0.005;
-            mouseY = (event.clientY - windowHalfY) * 0.005;
-        }
-
-        function onDocumentTouchMove(event) {
-            if (event.touches.length === 1) {
-                mouseX = (event.touches[0].clientX - windowHalfX) * 0.005;
-                mouseY = (event.touches[0].clientY - windowHalfY) * 0.005;
-            }
-        }
-
-        function onWindowResize() {
-            windowHalfX = window.innerWidth / 2;
-            windowHalfY = window.innerHeight / 2;
-            
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            // Rotar partículas
-            if (particles) {
-                particles.rotation.x += 0.001;
-                particles.rotation.y += 0.002;
-            }
-            
-            // Movimiento de cámara con mouse/touch
-            camera.position.x += (mouseX - camera.position.x) * 0.05;
-            camera.position.y += (-mouseY - camera.position.y) * 0.05;
-            camera.lookAt(scene.position);
-            
-            renderer.render(scene, camera);
-        }
+        // Redimensionar partículas 2D cuando cambie el tamaño de la ventana
+        window.addEventListener('resize', () => {
+            particles2dCanvas.width = window.innerWidth;
+            particles2dCanvas.height = window.innerHeight;
+        });
     </script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </body>
 </html>
