@@ -56,7 +56,7 @@
 
         /* Pantalla inicial */
         #click-overlay {
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
             cursor: pointer;
             transition: all 0.5s ease;
         }
@@ -75,7 +75,7 @@
             margin: 10px 0;
         }
 
-        /* Mensaje principal - SIN RECUADRO */
+        /* Mensaje principal */
         #message-content {
             display: none;
         }
@@ -121,15 +121,17 @@
             background: rgba(255, 158, 197, 0.5);
         }
 
-        /* Efectos de partículas 2D */
-        #particles-2d {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+        /* Efecto de palabras al hacer click */
+        .click-word {
+            position: absolute;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ff9ec5;
             pointer-events: none;
             z-index: 5;
+            animation: wordFloat 4s ease-out forwards;
+            text-shadow: 0 0 10px rgba(255, 158, 197, 0.7);
+            font-family: 'Mali', cursive;
         }
 
         /* Loading */
@@ -170,9 +172,23 @@
             50% { opacity: 1; transform: scale(1.05); }
         }
 
-        @keyframes heartBeat {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.3); }
+        @keyframes wordFloat {
+            0% {
+                opacity: 0;
+                transform: translateY(0) scale(0.3) rotate(-15deg);
+            }
+            20% {
+                opacity: 1;
+                transform: translateY(-30px) scale(1.2) rotate(5deg);
+            }
+            80% {
+                opacity: 0.8;
+                transform: translateY(-100px) scale(1) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-150px) scale(0.8) rotate(10deg);
+            }
         }
 
         /* Responsive */
@@ -188,15 +204,16 @@
             .message {
                 font-size: clamp(2rem, 9vw, 4rem);
             }
+
+            .click-word {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Canvas para Three.js -->
     <canvas id="three-canvas"></canvas>
-    
-    <!-- Canvas para partículas 2D -->
-    <canvas id="particles-2d"></canvas>
 
     <!-- Audio -->
     <audio id="myAudio" loop>
@@ -205,7 +222,7 @@
 
     <!-- Loading -->
     <div class="loading" id="loading">
-        <i class="fas fa-heart fa-beat" style="color: #ff6ba1;"></i> Cargando nuestro amor...
+        <i class="fas fa-heart fa-beat" style="color: #ff6ba1;"></i> Preparando nuestro mundo de amor...
     </div>
 
     <!-- Botón de audio -->
@@ -216,10 +233,10 @@
     <!-- Pantalla inicial -->
     <div class="container" id="click-overlay">
         <div>
-            <h1>💖 Toca Nuestro Amor 💖</h1>
-            <p>Presiona para comenzar nuestro viaje especial</p>
-            <p style="font-size: 1.2rem; margin-top: 20px;">
-                Con todo mi amor para ti, ALEJ 💕
+            <h1>💖 Nuestro Universo de Amor 💖</h1>
+            <p>Toca para entrar a nuestro mundo especial</p>
+            <p style="font-size: 1.2rem; margin-top: 30px;">
+                Para ti, mi ALEJ, con todo mi corazón 💕
             </p>
         </div>
     </div>
@@ -231,7 +248,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // ========== CONFIGURACIÓN INICIAL ==========
+        // ========== CONFIGURACIÓN ==========
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
         // Elementos DOM
@@ -241,32 +258,27 @@
         const toggleAudioBtn = document.getElementById('toggle-audio');
         const audioIcon = document.getElementById('audio-icon');
         const loading = document.getElementById('loading');
-        const particles2dCanvas = document.getElementById('particles-2d');
-        const ctx2d = particles2dCanvas.getContext('2d');
 
         // Variables globales
         let isPlaying = false;
         let isInitialized = false;
-        let scene, camera, renderer, controls;
-        let hearts3D = [], floatingTexts = [], particles2d = [];
+        let scene, camera, renderer, raycaster, mouse;
+        let hearts3D = [], floatingTexts = [], particles = [];
         let mouseX = 0, mouseY = 0;
         let windowHalfX = window.innerWidth / 2;
         let windowHalfY = window.innerHeight / 2;
 
-        // Colores pastel románticos
+        // Palabras para el efecto de click
+        const clickWords = [
+            "TE AMO", "I LOVE YOU", "MI AMOR", "FOREVER", "SIEMPRE",
+            "MY HEART", "BESOS", "ABRAZOS", "ERES MÍA", "MI TODO",
+            "SOULMATE", "DESTINO", "PASIÓN", "ROMANCE", "ETERNIDAD"
+        ];
+
+        // Colores pastel
         const pastelColors = [
             '#FFB6C1', '#FFD1DC', '#FF9EC5', '#F8C8DC', '#F4A6B8',
             '#FF85B3', '#FF6BA1', '#FFB7C5', '#FFCCD5', '#FFDFE3'
-        ];
-
-        // Palabras románticas
-        const romanticWords = [
-            "TE AMO", "FOREVER", "LOVE", "AMOR", "TI AMO", "TE QUIERO",
-            "SOULMATE", "DESTINY", "PASSION", "ROMANCE", "DEVOTION",
-            "AFFECTION", "SWEETHEART", "DARLING", "BELOVED", "ADORE",
-            "CHERISH", "TREASURE", "HEART", "SOUL", "TOGETHER", "ALWAYS",
-            "ETERNITY", "HAPPINESS", "JOY", "BLISS", "BEAUTIFUL", "PERFECT",
-            "ANGEL", "DREAM", "MAGIC", "KISS", "HUG", "SMILE", "LAUGH"
         ];
 
         // ========== INICIALIZACIÓN ==========
@@ -276,13 +288,7 @@
 
             loading.style.display = 'block';
             
-            // Iniciar Three.js inmediatamente
             initThreeJS();
-            
-            // Iniciar partículas 2D
-            initParticles2D();
-            
-            // Intentar reproducir audio
             playAudio();
         }
 
@@ -290,7 +296,7 @@
             audio.play().then(() => {
                 completeInitialization();
             }).catch(error => {
-                console.log('Audio requiere interacción:', error);
+                console.log('Audio requiere interacción');
                 completeInitialization();
             });
         }
@@ -303,19 +309,49 @@
             isPlaying = true;
             
             startTypewriter();
-            animateParticles2D();
         }
 
-        // ========== THREE.JS - EFECTO 3D INMERSIVO ==========
+        // ========== EFECTO DE PALABRAS AL CLICK ==========
+        function createClickWord(x, y) {
+            const word = document.createElement('div');
+            word.className = 'click-word';
+            word.textContent = clickWords[Math.floor(Math.random() * clickWords.length)];
+            word.style.left = x + 'px';
+            word.style.top = y + 'px';
+            word.style.color = pastelColors[Math.floor(Math.random() * pastelColors.length)];
+            
+            document.body.appendChild(word);
+            
+            setTimeout(() => {
+                if (word.parentNode) {
+                    word.parentNode.removeChild(word);
+                }
+            }, 4000);
+        }
+
+        // Eventos de click/touch para palabras
+        document.addEventListener('click', (e) => {
+            if (isInitialized) {
+                createClickWord(e.clientX, e.clientY);
+            }
+        });
+
+        document.addEventListener('touchstart', (e) => {
+            if (isInitialized && e.touches.length === 1) {
+                createClickWord(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: true });
+
+        // ========== THREE.JS - EFECTO 3D INMERSIVO MEJORADO ==========
         function initThreeJS() {
-            // Escena
+            // Escena con niebla para profundidad
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x000000);
-            scene.fog = new THREE.Fog(0x000000, 50, 300);
+            scene.fog = new THREE.Fog(0x000000, 50, 500);
 
-            // Cámara
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 0, 50);
+            // Cámara con controles más sensibles
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.set(0, 0, 100);
 
             // Renderer
             renderer = new THREE.WebGLRenderer({ 
@@ -326,27 +362,35 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
 
-            // Luces
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            // Sistema de luces mejorado
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
             scene.add(ambientLight);
 
-            const directionalLight = new THREE.DirectionalLight(0xff9ec5, 1);
-            directionalLight.position.set(5, 5, 5);
-            scene.add(directionalLight);
+            const directionalLight1 = new THREE.DirectionalLight(0xff9ec5, 0.8);
+            directionalLight1.position.set(10, 10, 10);
+            scene.add(directionalLight1);
 
-            const pointLight = new THREE.PointLight(0xff6ba1, 1, 100);
+            const directionalLight2 = new THREE.DirectionalLight(0x85b3ff, 0.6);
+            directionalLight2.position.set(-10, -10, 5);
+            scene.add(directionalLight2);
+
+            const pointLight = new THREE.PointLight(0xff6ba1, 1, 200);
             pointLight.position.set(0, 0, 50);
             scene.add(pointLight);
 
-            // Crear corazones 3D
+            // Raycaster para interacción
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            // Crear elementos 3D
             createHearts3D();
-
-            // Crear textos 3D flotantes
             createFloatingTexts3D();
+            createParticleField();
 
-            // Eventos de movimiento
+            // Eventos de movimiento mejorados
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('touchmove', onTouchMove, { passive: true });
+            document.addEventListener('click', onDocumentClick);
 
             // Animación
             animateThreeJS();
@@ -358,30 +402,40 @@
         function createHearts3D() {
             const heartShape = new THREE.Shape();
             heartShape.moveTo(0, 0);
-            heartShape.bezierCurveTo(2, 2, 4, 0, 0, -4);
-            heartShape.bezierCurveTo(-4, 0, -2, 2, 0, 0);
+            for (let i = 0; i < 30; i++) {
+                const t = i / 30 * Math.PI * 2;
+                const px = 16 * Math.pow(Math.sin(t), 3);
+                const py = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+                if (i === 0) {
+                    heartShape.moveTo(px, py);
+                } else {
+                    heartShape.lineTo(px, py);
+                }
+            }
 
             const extrudeSettings = {
-                depth: 0.5,
+                depth: 1,
                 bevelEnabled: true,
-                bevelThickness: 0.1,
+                bevelThickness: 0.2,
                 bevelSize: 0.1,
                 bevelSegments: 8
             };
 
-            for (let i = 0; i < 50; i++) {
+            // Crear 30 corazones en posiciones esféricas
+            for (let i = 0; i < 30; i++) {
                 const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
                 const material = new THREE.MeshPhongMaterial({
                     color: new THREE.Color(pastelColors[Math.floor(Math.random() * pastelColors.length)]),
                     transparent: true,
-                    opacity: 0.8,
-                    shininess: 100
+                    opacity: 0.9,
+                    shininess: 100,
+                    specular: 0xffffff
                 });
 
                 const heart = new THREE.Mesh(geometry, material);
                 
-                // Posición aleatoria en una esfera
-                const radius = 30 + Math.random() * 50;
+                // Distribución en esfera
+                const radius = 60 + Math.random() * 100;
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos(2 * Math.random() - 1);
                 
@@ -391,11 +445,13 @@
                 
                 heart.rotation.x = Math.random() * Math.PI;
                 heart.rotation.y = Math.random() * Math.PI;
+                heart.rotation.z = Math.random() * Math.PI;
                 
                 heart.userData = {
                     originalPosition: heart.position.clone(),
-                    speed: Math.random() * 0.02 + 0.01,
-                    angle: Math.random() * Math.PI * 2
+                    speed: Math.random() * 0.01 + 0.005,
+                    angle: Math.random() * Math.PI * 2,
+                    pulseSpeed: Math.random() * 0.02 + 0.01
                 };
 
                 scene.add(heart);
@@ -404,19 +460,26 @@
         }
 
         function createFloatingTexts3D() {
-            // Usaremos esferas como placeholder para textos
-            // En una implementación real, cargaríamos fuentes 3D
-            romanticWords.forEach((word, index) => {
-                const geometry = new THREE.SphereGeometry(1, 8, 6);
+            const words3D = [
+                "TE", "AMO", "LOVE", "YOU", "FOREVER", "ALWAYS",
+                "MI", "AMOR", "SOUL", "MATE", "DESTINY", "ROMANCE",
+                "PASSION", "DEVOTION", "AFFECTION", "ETERNITY"
+            ];
+
+            // Usar esferas como placeholders para textos
+            words3D.forEach((word, index) => {
+                const geometry = new THREE.SphereGeometry(1.5, 12, 8);
                 const material = new THREE.MeshPhongMaterial({
                     color: new THREE.Color(pastelColors[index % pastelColors.length]),
                     transparent: true,
-                    opacity: 0.7
+                    opacity: 0.8,
+                    emissive: new THREE.Color(pastelColors[index % pastelColors.length]),
+                    emissiveIntensity: 0.3
                 });
 
                 const textMesh = new THREE.Mesh(geometry, material);
                 
-                const radius = 40 + Math.random() * 60;
+                const radius = 80 + Math.random() * 120;
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos(2 * Math.random() - 1);
                 
@@ -426,7 +489,7 @@
                 
                 textMesh.userData = {
                     originalPosition: textMesh.position.clone(),
-                    speed: Math.random() * 0.01 + 0.005,
+                    speed: Math.random() * 0.008 + 0.003,
                     angle: Math.random() * Math.PI * 2,
                     word: word
                 };
@@ -436,16 +499,63 @@
             });
         }
 
+        function createParticleField() {
+            const particleCount = 1000;
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 1000;
+                positions[i + 1] = (Math.random() - 0.5) * 1000;
+                positions[i + 2] = (Math.random() - 0.5) * 1000;
+
+                const color = new THREE.Color(pastelColors[Math.floor(Math.random() * pastelColors.length)]);
+                colors[i] = color.r * 0.3;
+                colors[i + 1] = color.g * 0.3;
+                colors[i + 2] = color.b * 0.3;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 2,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.6,
+                sizeAttenuation: true
+            });
+
+            const particleSystem = new THREE.Points(geometry, material);
+            scene.add(particleSystem);
+            particles.push(particleSystem);
+        }
+
         function onMouseMove(event) {
-            mouseX = (event.clientX - windowHalfX) * 0.0005;
-            mouseY = (event.clientY - windowHalfY) * 0.0005;
+            mouseX = (event.clientX - windowHalfX) * 0.001;
+            mouseY = (event.clientY - windowHalfY) * 0.001;
+            
+            // Actualizar raycaster
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
         }
 
         function onTouchMove(event) {
             if (event.touches.length === 1) {
-                mouseX = (event.touches[0].clientX - windowHalfX) * 0.0005;
-                mouseY = (event.touches[0].clientY - windowHalfY) * 0.0005;
+                mouseX = (event.touches[0].clientX - windowHalfX) * 0.001;
+                mouseY = (event.touches[0].clientY - windowHalfY) * 0.001;
+                
+                mouse.x = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
+                mouse.y = - (event.touches[0].clientY / window.innerHeight) * 2 + 1;
             }
+        }
+
+        function onDocumentClick() {
+            // Efecto de interacción al hacer click
+            hearts3D.forEach(heart => {
+                heart.scale.setScalar(1 + Math.random() * 0.5);
+            });
         }
 
         function animateThreeJS() {
@@ -453,30 +563,47 @@
 
             const time = Date.now() * 0.001;
 
+            // Movimiento de cámara INMERSIVO - sigue el mouse suavemente
+            camera.position.x += (mouseX * 200 - camera.position.x) * 0.02;
+            camera.position.y += (-mouseY * 200 - camera.position.y) * 0.02;
+            
+            // Rotación de cámara sutil para efecto de vuelo
+            camera.rotation.z = mouseX * 0.1;
+            camera.rotation.x = mouseY * 0.05;
+
+            camera.lookAt(scene.position);
+
             // Animar corazones
             hearts3D.forEach((heart, index) => {
                 heart.rotation.y += 0.01;
-                heart.rotation.x = Math.sin(time + index) * 0.1;
+                heart.rotation.x += 0.005;
                 
-                // Movimiento flotante
-                heart.position.y = heart.userData.originalPosition.y + Math.sin(time + index) * 2;
-                heart.position.x = heart.userData.originalPosition.x + Math.cos(time * 0.7 + index) * 1.5;
+                // Movimiento orbital suave
+                heart.userData.angle += heart.userData.speed;
+                heart.position.x = heart.userData.originalPosition.x + Math.sin(time + heart.userData.angle) * 5;
+                heart.position.y = heart.userData.originalPosition.y + Math.cos(time * 0.7 + heart.userData.angle) * 3;
                 
                 // Pulsación
-                const scale = 1 + Math.sin(time * 2 + index) * 0.2;
-                heart.scale.setScalar(scale);
+                const pulse = Math.sin(time * heart.userData.pulseSpeed + index) * 0.3 + 1;
+                heart.scale.setScalar(pulse);
             });
 
-            // Animar textos
+            // Animar textos flotantes
             floatingTexts.forEach((text, index) => {
-                text.rotation.y += 0.005;
-                text.position.y = text.userData.originalPosition.y + Math.sin(time + index) * 3;
+                text.rotation.y += 0.008;
+                text.rotation.x += 0.004;
+                
+                text.position.y = text.userData.originalPosition.y + Math.sin(time * 0.5 + index) * 4;
+                text.position.x = text.userData.originalPosition.x + Math.cos(time * 0.3 + index) * 2;
             });
 
-            // Movimiento de cámara inmersivo
-            camera.position.x += (mouseX * 100 - camera.position.x) * 0.05;
-            camera.position.y += (-mouseY * 100 - camera.position.y) * 0.05;
-            camera.lookAt(scene.position);
+            // Raycasting para interacción
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects([...hearts3D, ...floatingTexts]);
+            
+            if (intersects.length > 0) {
+                intersects[0].object.scale.setScalar(1.5);
+            }
 
             renderer.render(scene, camera);
         }
@@ -490,69 +617,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // ========== PARTÍCULAS 2D - CORAZONES ==========
-        function initParticles2D() {
-            particles2dCanvas.width = window.innerWidth;
-            particles2dCanvas.height = window.innerHeight;
-
-            // Crear partículas de corazones
-            for (let i = 0; i < 30; i++) {
-                particles2d.push({
-                    x: Math.random() * particles2dCanvas.width,
-                    y: Math.random() * particles2dCanvas.height,
-                    size: Math.random() * 20 + 10,
-                    speed: Math.random() * 2 + 0.5,
-                    color: pastelColors[Math.floor(Math.random() * pastelColors.length)],
-                    opacity: Math.random() * 0.5 + 0.3,
-                    rotation: Math.random() * Math.PI * 2
-                });
-            }
-        }
-
-        function drawHeart2D(ctx, x, y, size, color, rotation) {
-            ctx.save();
-            ctx.translate(x, y);
-            ctx.rotate(rotation);
-            ctx.scale(size / 20, size / 20);
-            
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            for (let i = 0; i < 30; i++) {
-                const t = i / 30 * Math.PI * 2;
-                const px = 16 * Math.pow(Math.sin(t), 3);
-                const py = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
-                if (i === 0) {
-                    ctx.moveTo(px, py);
-                } else {
-                    ctx.lineTo(px, py);
-                }
-            }
-            ctx.closePath();
-            ctx.fill();
-            
-            ctx.restore();
-        }
-
-        function animateParticles2D() {
-            ctx2d.clearRect(0, 0, particles2dCanvas.width, particles2dCanvas.height);
-
-            particles2d.forEach(particle => {
-                particle.y -= particle.speed;
-                particle.rotation += 0.02;
-
-                if (particle.y < -particle.size) {
-                    particle.y = particles2dCanvas.height + particle.size;
-                    particle.x = Math.random() * particles2dCanvas.width;
-                }
-
-                drawHeart2D(ctx2d, particle.x, particle.y, particle.size, particle.color, particle.rotation);
-            });
-
-            requestAnimationFrame(animateParticles2D);
-        }
-
-        // ========== EFECTO MÁQUINA DE ESCRIBIR ==========
+        // ========== MÁQUINA DE ESCRIBIR ==========
         function startTypewriter() {
             const message = document.querySelector('.message');
             const originalText = message.textContent;
@@ -587,12 +652,6 @@
                 audioIcon.className = 'fas fa-volume-high';
             }
             isPlaying = !isPlaying;
-        });
-
-        // Redimensionar partículas 2D cuando cambie el tamaño de la ventana
-        window.addEventListener('resize', () => {
-            particles2dCanvas.width = window.innerWidth;
-            particles2dCanvas.height = window.innerHeight;
         });
     </script>
 </body>
