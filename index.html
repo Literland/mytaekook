@@ -135,7 +135,7 @@
             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #404040 100%);
         }
 
-        /* Fotos movibles - MEJORADO */
+        /* Fotos movibles */
         .photo-frame {
             position: absolute;
             width: 160px;
@@ -143,26 +143,20 @@
             background: white;
             border: 6px solid var(--lila-pastel);
             border-radius: 15px;
-            box-shadow: 
-                0 10px 25px rgba(0,0,0,0.4),
-                0 0 15px var(--rosa-bebe);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4), 0 0 15px var(--rosa-bebe);
             cursor: grab;
             transition: all 0.2s ease;
             touch-action: none;
             user-select: none;
             z-index: 10;
-            /* NUEVO: Mejor rendimiento para arrastre */
-            will-change: transform;
         }
 
         .photo-frame.dragging {
             cursor: grabbing;
             transform: scale(1.08);
-            box-shadow: 
-                0 15px 35px rgba(0,0,0,0.6),
-                0 0 25px var(--purple-bts);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 25px var(--purple-bts);
             z-index: 100;
-            transition: none; /* Sin transición durante arrastre */
+            transition: none;
         }
 
         .photo-frame img {
@@ -170,7 +164,7 @@
             height: 100%;
             object-fit: cover;
             border-radius: 10px;
-            pointer-events: none; /* Mejorar arrastre */
+            pointer-events: none;
         }
 
         /* Elementos decorativos */
@@ -277,7 +271,6 @@
             z-index: 190;
             font-size: 1rem;
             border: 1px solid var(--lila-pastel);
-            box-shadow: 0 0 20px rgba(216, 191, 216, 0.3);
         }
 
         /* Menú de escenas */
@@ -292,7 +285,6 @@
             backdrop-filter: blur(20px);
             z-index: 180;
             display: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .scene-option {
@@ -313,6 +305,24 @@
         .scene-option:hover {
             background: rgba(255, 255, 255, 0.2);
             transform: translateX(5px);
+        }
+
+        /* Botón de activación de música */
+        #music-activation-btn {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, var(--purple-bts), var(--rosa-neon));
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            color: white;
+            font-family: 'Mali', cursive;
+            font-size: 1rem;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
         /* Animaciones */
@@ -340,10 +350,7 @@
         }
 
         @keyframes fall {
-            to { 
-                transform: translateY(100vh) rotate(360deg); 
-                opacity: 0;
-            }
+            to { transform: translateY(100vh) rotate(360deg); opacity: 0; }
         }
 
         @keyframes twinkle {
@@ -354,17 +361,6 @@
         @keyframes message-float {
             0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.7; }
             50% { transform: translateY(-25px) rotate(5deg); opacity: 1; }
-        }
-
-        /* Efectos de partículas */
-        #particles-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1;
         }
 
         /* Responsive */
@@ -392,9 +388,6 @@
                 width: 120px;
                 height: 150px;
             }
-            .welcome-content h1 {
-                font-size: clamp(2rem, 7vw, 3rem);
-            }
         }
     </style>
 </head>
@@ -420,30 +413,19 @@
     <!-- Contenedor principal -->
     <div id="experience-container">
         <!-- Escena 1: Jardín de Nieve Taekook -->
-        <div id="snow-garden" class="scene active">
-            <!-- Fotos y elementos se agregarán dinámicamente -->
-        </div>
+        <div id="snow-garden" class="scene active"></div>
 
         <!-- Escena 2: Universo Mikrokosmos -->
-        <div id="universe" class="scene">
-            <!-- Elementos del universo -->
-        </div>
+        <div id="universe" class="scene"></div>
 
         <!-- Escena 3: Hogar K-Drama -->
-        <div id="k-drama-home" class="scene">
-            <!-- Elementos del hogar -->
-        </div>
+        <div id="k-drama-home" class="scene"></div>
 
         <!-- Escena 4: Galería del Amor -->
-        <div id="love-gallery" class="scene">
-            <!-- Galería de fotos -->
-        </div>
+        <div id="love-gallery" class="scene"></div>
     </div>
 
-    <!-- Canvas para efectos -->
-    <canvas id="particles-canvas"></canvas>
-
-    <!-- Audio - URLs ACTUALIZADAS -->
+    <!-- Audio -->
     <audio id="background-music" loop>
         <source src="https://audio.jukehost.co.uk/s9fVfq0d9Q2p5l3qK3U4c8Q9p8J3y2a" type="audio/mpeg">
     </audio>
@@ -476,29 +458,26 @@
     </div>
 
     <script>
-        // ========== CONFIGURACIÓN CORREGIDA ==========
-const scenes = [
-    { 
-        id: 'snow-garden', 
-        name: '❄️ Jardín de Nieve Taekook',
-        music: 'https://audio.jukehost.co.uk/s9fVfq0d9Q2p5l3qK3U4c8Q9p8J3y2a' // Snow Flower - V
-    },
-    { 
-        id: 'universe', 
-        name: '🌌 Universo Mikrokosmos',
-        music: 'https://audio.jukehost.co.uk/s9fVfq0d9Q2p5l3qK3U4c8Q9p8J3y2a' // Misma por ahora - NECESITAS URL REAL
-    },
-    { 
-        id: 'k-drama-home', 
-        name: '🏡 Hogar K-Drama',
-        music: 'https://audio.jukehost.co.uk/s9fVfq0d9Q2p5l3qK3U4c8Q9p8J3y2a' // Misma por ahora - NECESITAS URL REAL
-    },
-    { 
-        id: 'love-gallery', 
-        name: '💞 Galería del Amor',
-        music: 'https://audio.jukehost.co.uk/s9fVfq0d9Q2p5l3qK3U4c8Q9p8J3y2a' // Misma por ahora - NECESITAS URL REAL
-    }
-];
+        // ========== CONFIGURACIÓN ==========
+        const scenes = [
+            { 
+                id: 'snow-garden', 
+                name: '❄️ Jardín de Nieve Taekook'
+            },
+            { 
+                id: 'universe', 
+                name: '🌌 Universo Mikrokosmos'
+            },
+            { 
+                id: 'k-drama-home', 
+                name: '🏡 Hogar K-Drama'
+            },
+            { 
+                id: 'love-gallery', 
+                name: '💞 Galería del Amor'
+            }
+        ];
+
         const photos = [
             'https://literland.github.io/mytaekook/14d8c2703f5903579bd3d8e809f7dd39.jpg',
             'https://literland.github.io/mytaekook/17ac5a41c03f28b8ef49f4292390d48d.jpg',
@@ -540,7 +519,6 @@ const scenes = [
             createFloatingHearts();
             createBTSElements();
             createSpecialMessages();
-            initParticles();
         }
 
         function startExperience() {
@@ -559,21 +537,14 @@ const scenes = [
             currentSceneIndex = index;
             const scene = scenes[index];
             
-            // Ocultar todas las escenas
             document.querySelectorAll('.scene').forEach(scene => {
                 scene.classList.remove('active');
             });
             
-            // Mostrar escena actual
             document.getElementById(scene.id).classList.add('active');
-            
-            // Actualizar indicador
             document.getElementById('scene-indicator').textContent = scene.name;
             
-            // Cargar contenido específico
             loadSceneContent(scene.id);
-            
-            // Ocultar menú si está abierto
             document.getElementById('scene-menu').style.display = 'none';
         }
 
@@ -598,7 +569,6 @@ const scenes = [
         }
 
         function loadSnowGarden(scene) {
-            // Agregar 4 fotos en posiciones estratégicas
             const positions = [
                 { x: 25, y: 30 }, { x: 75, y: 30 },
                 { x: 25, y: 70 }, { x: 75, y: 70 }
@@ -608,13 +578,11 @@ const scenes = [
                 createDraggablePhoto(scene, i, positions[i]);
             }
             
-            // Mensajes especiales para esta escena
             createSceneMessage(scene, "❄️ Nieve de Amor Eterno", 50, 15);
             createSceneMessage(scene, "🐻🐰 Team Taekook", 50, 85);
         }
 
         function loadUniverse(scene) {
-            // Agregar fotos en forma de constelación
             for (let i = 4; i < 8; i++) {
                 const angle = (i - 4) * (Math.PI / 2);
                 createDraggablePhoto(scene, i, {
@@ -628,7 +596,6 @@ const scenes = [
         }
 
         function loadKdramaHome(scene) {
-            // Agregar fotos en disposición de hogar
             const positions = [
                 { x: 20, y: 25 }, { x: 80, y: 25 },
                 { x: 20, y: 75 }, { x: 80, y: 75 }
@@ -645,15 +612,9 @@ const scenes = [
         }
 
         function loadLoveGallery(scene) {
-            // Galería con todas las fotos en grid
-            const photosPerRow = 3;
-            const photoWidth = 25;
-            const photoHeight = 20;
-            
             for (let i = 0; i < photos.length; i++) {
-                const row = Math.floor(i / photosPerRow);
-                const col = i % photosPerRow;
-                
+                const row = Math.floor(i / 3);
+                const col = i % 3;
                 createDraggablePhoto(scene, i, {
                     x: 20 + col * 30,
                     y: 20 + row * 25
@@ -679,7 +640,6 @@ const scenes = [
             frame.appendChild(img);
             scene.appendChild(frame);
             
-            // NUEVO: Sistema de arrastre mejorado
             setupDragAndDrop(frame);
             
             frame.addEventListener('click', (e) => {
@@ -688,40 +648,35 @@ const scenes = [
             });
         }
 
-        // ========== SISTEMA DE ARRASTRE MEJORADO ==========
+        // ========== SISTEMA DE ARRASTRE ==========
         function setupDragAndDrop(element) {
             let isDragging = false;
             let startX, startY;
             let initialX, initialY;
             
             element.addEventListener('mousedown', startDrag);
-            element.addEventListener('touchstart', startDrag);
+            element.addEventListener('touchstart', startDrag, { passive: false });
             
             function startDrag(e) {
                 isDragging = true;
                 element.classList.add('dragging');
                 
-                // Obtener posición inicial
-                const rect = element.getBoundingClientRect();
-                initialX = rect.left;
-                initialY = rect.top;
+                initialX = parseInt(element.style.left) || 0;
+                initialY = parseInt(element.style.top) || 0;
                 
-                // Obtener posición del click/touch
                 if (e.type === 'mousedown') {
                     startX = e.clientX;
                     startY = e.clientY;
                 } else {
                     startX = e.touches[0].clientX;
                     startY = e.touches[0].clientY;
+                    e.preventDefault();
                 }
                 
-                // Agregar event listeners
                 document.addEventListener('mousemove', drag);
-                document.addEventListener('touchmove', drag);
+                document.addEventListener('touchmove', drag, { passive: false });
                 document.addEventListener('mouseup', stopDrag);
                 document.addEventListener('touchend', stopDrag);
-                
-                e.preventDefault();
             }
             
             function drag(e) {
@@ -735,27 +690,20 @@ const scenes = [
                 } else {
                     currentX = e.touches[0].clientX;
                     currentY = e.touches[0].clientY;
+                    e.preventDefault();
                 }
                 
-                // Calcular nueva posición
                 const deltaX = currentX - startX;
                 const deltaY = currentY - startY;
                 
-                const newX = initialX + deltaX;
-                const newY = initialY + deltaY;
-                
-                // Aplicar nueva posición (MUCHO MÁS RÁPIDO)
-                element.style.left = newX + 'px';
-                element.style.top = newY + 'px';
-                
-                e.preventDefault();
+                element.style.left = (initialX + deltaX) + 'px';
+                element.style.top = (initialY + deltaY) + 'px';
             }
             
             function stopDrag() {
                 isDragging = false;
                 element.classList.remove('dragging');
                 
-                // Remover event listeners
                 document.removeEventListener('mousemove', drag);
                 document.removeEventListener('touchmove', drag);
                 document.removeEventListener('mouseup', stopDrag);
@@ -777,12 +725,10 @@ const scenes = [
             message.className = 'special-message';
             message.textContent = messages[photoIndex];
             
-            // Posicionar cerca de la foto
             const rect = element.getBoundingClientRect();
             message.style.left = (rect.left + rect.width/2) + 'px';
             message.style.top = (rect.top - 30) + 'px';
             message.style.transform = 'translateX(-50%)';
-            
             message.style.animation = 'message-float 3s ease-in-out';
             message.style.fontSize = '1.1rem';
             
@@ -811,9 +757,82 @@ const scenes = [
             menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
 
+        // ========== MÚSICA ==========
+        function playMusic() {
+            const audio = document.getElementById('background-music');
+            audio.volume = 0.7;
+            
+            const playPromise = audio.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    isMusicPlaying = true;
+                    updateMusicIcon();
+                }).catch(error => {
+                    createMusicActivationButton();
+                });
+            }
+        }
+
+        function createMusicActivationButton() {
+            if (document.getElementById('music-activation-btn')) return;
+            
+            const btn = document.createElement('button');
+            btn.id = 'music-activation-btn';
+            btn.innerHTML = '🎵 Activar Música';
+            btn.style.cssText = `
+                position: fixed;
+                bottom: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(45deg, var(--purple-bts), var(--rosa-neon));
+                border: none;
+                padding: 12px 25px;
+                border-radius: 25px;
+                color: white;
+                font-family: 'Mali', cursive;
+                font-size: 1rem;
+                cursor: pointer;
+                z-index: 1000;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            `;
+            
+            btn.onclick = function() {
+                const audio = document.getElementById('background-music');
+                audio.play().then(() => {
+                    isMusicPlaying = true;
+                    updateMusicIcon();
+                    btn.remove();
+                });
+            };
+            
+            document.body.appendChild(btn);
+            
+            setTimeout(() => {
+                if (btn.parentNode) btn.remove();
+            }, 10000);
+        }
+
+        function toggleMusic() {
+            const audio = document.getElementById('background-music');
+            if (isMusicPlaying) {
+                audio.pause();
+            } else {
+                audio.play().catch(error => {
+                    createMusicActivationButton();
+                });
+            }
+            isMusicPlaying = !isMusicPlaying;
+            updateMusicIcon();
+        }
+
+        function updateMusicIcon() {
+            const icon = document.getElementById('music-icon');
+            icon.className = isMusicPlaying ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+        }
+
         // ========== EFECTOS VISUALES ==========
         function createSnowflakes() {
-            const container = document.body;
             for (let i = 0; i < 80; i++) {
                 const snowflake = document.createElement('div');
                 snowflake.className = 'snowflake';
@@ -823,12 +842,11 @@ const scenes = [
                 snowflake.style.animationDuration = Math.random() * 4 + 3 + 's';
                 snowflake.style.animationDelay = Math.random() * 8 + 's';
                 snowflake.style.opacity = Math.random() * 0.8 + 0.2;
-                container.appendChild(snowflake);
+                document.body.appendChild(snowflake);
             }
         }
 
         function createStars() {
-            const container = document.body;
             for (let i = 0; i < 120; i++) {
                 const star = document.createElement('div');
                 star.className = 'star';
@@ -838,7 +856,7 @@ const scenes = [
                 star.style.height = star.style.width;
                 star.style.animationDelay = Math.random() * 6 + 's';
                 star.style.opacity = Math.random() * 0.6 + 0.2;
-                container.appendChild(star);
+                document.body.appendChild(star);
             }
         }
 
@@ -888,108 +906,6 @@ const scenes = [
                 message.style.fontSize = (Math.random() * 0.8 + 1.1) + 'rem';
                 document.body.appendChild(message);
             }
-        }
-
-        function initParticles() {
-            const canvas = document.getElementById('particles-canvas');
-            const ctx = canvas.getContext('2d');
-            
-            function resizeCanvas() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            }
-            
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-        }
-
-        // ========== MÚSICA MEJORADA ==========
-        function playMusic() {
-            const audio = document.getElementById('background-music');
-            audio.volume = 0.7;
-            
-            // Estrategia más agresiva para móviles
-            const playPromise = audio.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    isMusicPlaying = true;
-                    updateMusicIcon();
-                    console.log('🎵 Música activada');
-                }).catch(error => {
-                    console.log('🔇Música bloqueada, necesita interacción');
-                    // En móvil, a veces necesita un tap explícito
-                    enableAudioOnInteraction();
-                });
-            }
-        }
-
-        function enableAudioOnInteraction() {
-            // Crear overlay para forzar interacción
-            const audioOverlay = document.createElement('div');
-    audioOverlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.8);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        color: white;
-        font-family: 'Mali', cursive;
-        text-align: center;
-        padding: 20px;
-    `;
-    
-    audioOverlay.innerHTML = `
-        <div style="font-size: 2rem; margin-bottom: 20px;">🎵</div>
-        <div style="font-size: 1.3rem; margin-bottom: 10px;">Toca para activar la música</div>
-        <div style="font-size: 1rem; color: var(--lila-pastel); margin-bottom: 30px;">
-            Algunos navegadores necesitan tu permiso para reproducir música
-        </div>
-        <button onclick="activateAudio()" style="
-            background: linear-gradient(45deg, var(--purple-bts), var(--rosa-neon));
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            color: white;
-            font-size: 1.1rem;
-            font-family: 'Mali', cursive;
-            cursor: pointer;
-        ">
-            Activar Música Taekook
-        </button>
-    `;
-    
-    document.body.appendChild(audioOverlay);
-}
-
-function activateAudio() {
-    const audio = document.getElementById('background-music');
-    audio.play().then(() => {
-        isMusicPlaying = true;
-        updateMusicIcon();
-        // Remover overlay
-        document.querySelectorAll('div').forEach(div => {
-            if (div.style.background === 'rgba(0, 0, 0, 0.8)') {
-                div.remove();
-            }
-        });
-    }).catch(error => {
-        console.log('Error final:', error);
-    });
-}
-            isMusicPlaying = !isMusicPlaying;
-            updateMusicIcon();
-        }
-
-        function updateMusicIcon() {
-            const icon = document.getElementById('music-icon');
-            icon.className = isMusicPlaying ? 'fas fa-volume-up' : 'fas fa-volume-mute';
         }
 
         // ========== INICIAR ==========
