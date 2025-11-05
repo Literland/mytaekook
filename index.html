@@ -585,4 +585,78 @@
         }
 
         function createFloatingMessages() {
-            const messages = ["TE AMO", 
+            const messages = ["TE AMO",TEAM TAEKOOK", "FOREVER", "MY LOVE", "SOULMATES", "💜 BTS 💜"];
+            for (let i = 0; i < 12; i++) {
+                const message = document.createElement('div');
+                message.className = 'floating-message';
+                message.textContent = messages[Math.floor(Math.random() * messages.length)];
+                message.style.left = Math.random() * 80 + 10 + '%';
+                message.style.top = Math.random() * 80 + 10 + '%';
+                message.style.animationDelay = Math.random() * 8 + 's';
+                message.style.fontSize = (Math.random() * 1 + 1.2) + 'rem';
+                document.body.appendChild(message);
+            }
+        }
+
+        // ========== CONTROL 360° ==========
+        let isDraggingWorld = false;
+        let startX, startY;
+        let rotationY = 0, rotationX = 0;
+
+        document.addEventListener('mousedown', startWorldDrag);
+        document.addEventListener('touchstart', startWorldDrag);
+
+        function startWorldDrag(e) {
+            if (!isExperienceLoaded) return;
+            if (e.target.closest('.photo-frame')) return; // No arrastrar mundo si se toca foto
+            
+            isDraggingWorld = true;
+            startX = e.clientX || e.touches[0].clientX;
+            startY = e.clientY || e.touches[0].clientY;
+        }
+
+        document.addEventListener('mousemove', dragWorld);
+        document.addEventListener('touchmove', dragWorld);
+
+        function dragWorld(e) {
+            if (!isDraggingWorld || !isExperienceLoaded) return;
+            
+            const currentX = e.clientX || e.touches[0].clientX;
+            const currentY = e.clientY || e.touches[0].clientY;
+            
+            const deltaX = currentX - startX;
+            const deltaY = currentY - startY;
+            
+            rotationY += deltaX * 0.3;
+            rotationX += deltaY * 0.2;
+            
+            document.getElementById('world').style.transform = 
+                `rotateY(${rotationY}deg) rotateX(${rotationX}deg)`;
+            
+            startX = currentX;
+            startY = currentY;
+        }
+
+        document.addEventListener('mouseup', endWorldDrag);
+        document.addEventListener('touchend', endWorldDrag);
+
+        function endWorldDrag() {
+            isDraggingWorld = false;
+        }
+
+        // ========== MÚSICA ==========
+        function toggleMusic() {
+            const icon = document.getElementById('music-icon');
+            if (isMusicPlaying) {
+                icon.className = 'fas fa-volume-mute';
+            } else {
+                icon.className = 'fas fa-volume-up';
+            }
+            isMusicPlaying = !isMusicPlaying;
+        }
+
+        // ========== INICIAR ==========
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
