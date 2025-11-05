@@ -1,948 +1,1490 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>My Taekook</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
-    <style>
-        /* [TODO EL CSS PERMANECE IGUAL - NO CAMBIAR] */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>My Taekook</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-        :root {
-            --lila-pastel: #D8BFD8;
-            --celeste-bebe: #B5EAD7;
-            --rosa-bebe: #FFD1DC;
-            --lavanda: #E6E6FA;
-            --azul-cielo: #87CEEB;
-            --purple-bts: #8A2BE2;
-            --rosa-neon: #ff6b9d;
-            --amarillo-pastel: #FFF9C4; 
-            --verde-menta: #A7FFEB;
-        }
+        :root {
+            --lila-pastel: #D8BFD8;
+            --celeste-bebe: #B5EAD7;
+            --rosa-bebe: #FFD1DC;
+            --lavanda: #E6E6FA;
+            --azul-cielo: #87CEEB;
+            --purple-bts: #8A2BE2;
+            --rosa-neon: #ff6b9d;
+            --amarillo-pastel: #FFF9C4; 
+            --verde-menta: #A7FFEB;
+        }
 
-        body, html {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            background: #000;
-            color: white;
-            font-family: 'Mali', cursive;
-            overflow: hidden;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
-        }
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: white;
+            font-family: 'Mali', cursive;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
 
-        /* [TODO EL RESTANTE DEL CSS PERMANECE EXACTAMENTE IGUAL] */
-        /* ... (todo tu CSS existente) ... */
-        
-    </style>
+        /* Pantalla de bienvenida */
+        #welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .welcome-content h1 {
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            color: var(--rosa-bebe);
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px var(--rosa-neon);
+            animation: welcome-pulse 2s ease-in-out infinite;
+        }
+
+        .welcome-content p {
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            color: var(--lila-pastel);
+            margin: 10px 0;
+            line-height: 1.4;
+        }
+
+        .start-button {
+            background: linear-gradient(45deg, var(--purple-bts), var(--rosa-neon));
+            border: none;
+            padding: 18px 45px;
+            border-radius: 50px;
+            color: white;
+            font-size: 1.4rem;
+            font-family: 'Mali', cursive;
+            cursor: pointer;
+            margin-top: 40px;
+            box-shadow: 0 0 30px rgba(255, 107, 157, 0.5);
+            transition: all 0.3s ease;
+            animation: button-glow 2s ease-in-out infinite alternate;
+        }
+
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 40px rgba(255, 107, 157, 0.7);
+        }
+
+        /* Contenedor principal */
+        #experience-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+
+        /* Transición entre escenas */
+        #scene-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        #scene-transition.active {
+            opacity: 1;
+        }
+
+        /* Escenas */
+        .scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            overflow: hidden;
+        }
+
+        .scene.active {
+            display: block;
+        }
+
+        /* Escena 1: Jardín de Nieve*/
+        #snow-garden {
+            background: linear-gradient(135deg, #0a0a2a 0%, #1a1a4a 50%, #2a2a6a 100%);
+        }
+
+        /* Escena 2: Universo Nuestro */
+        #universe {
+            background: linear-gradient(135deg, #000011 0%, #000033 50%, #000055 100%);
+        }
+
+        /* Escena 3: Hogar */
+        #k-drama-home {
+            background: linear-gradient(135deg, #2d1b33 0%, #4a2c5c 50%, #6b3f8c 100%);
+        }
+
+        /* Escena 4: Galería de Amor */
+        #love-gallery {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #404040 100%);
+        }
+
+        /* Fotos movibles */
+        .photo-frame {
+            position: absolute;
+            width: 160px;
+            height: 200px;
+            background: white;
+            border: 6px solid var(--lila-pastel);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4), 0 0 15px var(--rosa-bebe);
+            cursor: grab;
+            transition: all 0.2s ease;
+            touch-action: none;
+            user-select: none;
+            z-index: 10;
+            transform: translate(-50%, -50%);
+        }
+
+        .photo-frame.dragging {
+            cursor: grabbing;
+            transform: translate(-50%, -50%) scale(1.08);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 25px var(--purple-bts);
+            z-index: 1000;
+            transition: none;
+        }
+
+        .photo-frame.pulsing {
+            animation: photo-pulse 0.6s ease-in-out;
+        }
+
+        .photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        /* Partículas de corazones */
+        .heart-particle {
+            position: fixed;
+            font-size: 1.5rem;
+            animation: heart-explode 1.5s ease-out forwards;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Elementos decorativos */
+        .floating-heart {
+            position: absolute;
+            font-size: 1.8rem;
+            animation: float-heart 6s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .bts-element {
+            position: absolute;
+            font-size: 2rem;
+            animation: float-bts 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* Nieve */
+        .snowflake {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.9;
+            animation: fall linear infinite;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Estrellas */
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 4s infinite;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Mensajes especiales */
+        .special-message {
+            position: absolute;
+            font-size: 1.3rem;
+            color: var(--rosa-neon);
+            text-shadow: 0 0 10px currentColor;
+            animation: message-float 5s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 8;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* Botones de navegación */
+        .nav-button {
+            position: fixed;
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid var(--lila-pastel);
+            border-radius: 50%;
+            width: 55px;
+            height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 200;
+            backdrop-filter: blur(15px);
+            transition: all 0.3s ease;
+            color: white;
+            font-size: 1.3rem;
+        }
+
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.15);
+        }
+
+        .nav-prev { left: 20px; top: 50%; transform: translateY(-50%); }
+        .nav-next { right: 20px; top: 50%; transform: translateY(-50%); }
+        .nav-audio { 
+            top: 20px; 
+            right: 20px; 
+            background: rgba(138, 43, 226, 0.4);
+            border-color: var(--purple-bts);
+        }
+        .nav-menu { 
+            top: 20px; 
+            left: 20px; 
+            background: rgba(255, 107, 157, 0.4);
+            border-color: var(--rosa-neon);
+        }
+        .nav-3d { 
+    top: 20px; 
+    left: 50%; 
+    transform: translateX(-50%);
+    background: rgba(165, 212, 233, 0.4);
+    border-color: var(--azul-cielo);
+        }
+        
+        /* Indicador de escena */
+        .scene-indicator {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--lila-pastel);
+            padding: 12px 25px;
+            border-radius: 30px;
+            backdrop-filter: blur(15px);
+            z-index: 190;
+            font-size: 1rem;
+            border: 1px solid var(--lila-pastel);
+        }
+
+        /* Menú de escenas */
+        #scene-menu {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid var(--lila-pastel);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            z-index: 180;
+            display: none;
+        }
+
+        .scene-option {
+            padding: 12px 20px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: 'Mali', cursive;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: left;
+            font-size: 1rem;
+        }
+
+        .scene-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        /* Botón de activación de música */
+        #music-activation-btn {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, var(--purple-bts), var(--rosa-neon));
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            color: white;
+            font-family: 'Mali', cursive;
+            font-size: 1.1rem;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            max-width: 90vw;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Animaciones */
+        @keyframes welcome-pulse {
+            0%, 100% { transform: scale(1); text-shadow: 0 0 20px var(--rosa-neon); }
+            50% { transform: scale(1.05); text-shadow: 0 0 30px var(--rosa-neon); }
+        }
+
+        @keyframes button-glow {
+            0% { box-shadow: 0 0 30px rgba(255, 107, 157, 0.5); }
+            100% { box-shadow: 0 0 40px rgba(255, 107, 157, 0.8); }
+        }
+
+        @keyframes float-heart {
+            0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+            33% { transform: translateY(-20px) rotate(120deg) scale(1.1); }
+            66% { transform: translateY(-10px) rotate(240deg) scale(0.9); }
+        }
+
+        @keyframes float-bts {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-25px) rotate(90deg); }
+            50% { transform: translateY(-15px) rotate(180deg); }
+            75% { transform: translateY(-30px) rotate(270deg); }
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
+
+        @keyframes message-float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.7; }
+            50% { transform: translateY(-25px) rotate(5deg); opacity: 1; }
+        }
+
+        @keyframes photo-pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        @keyframes heart-explode {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--tx, 0), var(--ty, -100px)) scale(0.5);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-button {
+                width: 50px;
+                height: 50px;
+                font-size: 1.1rem;
+            }
+            .nav-prev { left: 15px; }
+            .nav-next { right: 15px; }
+            .photo-frame {
+                width: 140px;
+                height: 175px;
+            }
+            .scene-indicator {
+                bottom: 20px;
+                font-size: 0.9rem;
+                padding: 10px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .photo-frame {
+                width: 120px;
+                height: 150px;
+            }
+        }
+
+           /* ========== SISTEMA 3D ========== */
+.scene-3d {
+    perspective: 1000px;
+    transform-style: preserve-3d;
+}
+
+.parallax-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+}
+
+.parallax-layer {
+    position: absolute;
+    top: -10%;
+    left: -10%;
+    width: 120%;
+    height: 120%;
+    transform-style: preserve-3d;
+}
+
+.layer-1 { transform: translateZ(-500px) scale(2); }
+.layer-2 { transform: translateZ(-300px) scale(1.6); }
+.layer-3 { transform: translateZ(-100px) scale(1.2); }
+.layer-4 { transform: translateZ(0px) scale(1); }
+.layer-5 { transform: translateZ(100px) scale(0.8); }
+
+/* Partículas 3D */
+.particle-3d {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.particle-heart {
+    font-size: 1.2rem;
+    animation: float-3d 25s infinite linear;
+    text-shadow: 0 0 10px currentColor;
+}
+
+.particle-star {
+    background: var(--amarillo-pastel);
+    animation: float-3d 30s infinite linear;
+    box-shadow: 0 0 15px var(--amarillo-pastel);
+}
+
+.particle-bubble {
+    background: radial-gradient(circle at 30% 30%, var(--celeste-bebe), transparent);
+    border-radius: 50%;
+    animation: float-3d 20s infinite linear;
+    opacity: 0.6;
+}
+
+/* Fotos en 3D */
+.photo-frame-3d {
+    position: absolute;
+    width: 160px;
+    height: 200px;
+    background: white;
+    border: 6px solid var(--lila-pastel);
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4), 0 0 15px var(--rosa-bebe);
+    cursor: grab;
+    transition: all 0.3s ease;
+    touch-action: none;
+    user-select: none;
+    z-index: 10;
+    transform-style: preserve-3d;
+}
+
+.photo-frame-3d.dragging {
+    cursor: grabbing;
+    transform: scale(1.08) rotateY(5deg) rotateX(5deg);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 25px var(--purple-bts);
+    z-index: 1000;
+}
+
+.photo-frame-3d img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+    pointer-events: none;
+}
+
+.photo-frame-3d:hover {
+    transform: translateZ(20px) rotateY(5deg) rotateX(5deg);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 30px var(--rosa-neon);
+}
+
+/* Elementos decorativos 3D */
+.floating-element-3d {
+    position: absolute;
+    font-size: 2rem;
+    animation: float-3d-element 15s infinite ease-in-out;
+    pointer-events: none;
+    z-index: 5;
+    text-shadow: 0 0 15px currentColor;
+}
+
+/* Fondo 3D gradient */
+.bg-gradient-3d {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(255, 209, 220, 0.3) 0%,
+        rgba(181, 234, 215, 0.2) 30%,
+        rgba(216, 191, 216, 0.1) 60%,
+        transparent 100%
+    );
+    z-index: -1;
+}
+
+/* Modo 3D activo */
+.scene-3d-active {
+    background: linear-gradient(135deg, #2d1b69 0%, #6b3f8c 50%, #ff6b9d 100%) !important;
+}
+
+/* Animaciones 3D */
+@keyframes float-3d {
+    0% {
+        transform: translate3d(var(--start-x), var(--start-y), var(--start-z)) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: var(--opacity);
+    }
+    90% {
+        opacity: var(--opacity);
+    }
+    100% {
+        transform: translate3d(var(--end-x), var(--end-y), var(--end-z)) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes float-3d-element {
+    0%, 100% {
+        transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+    }
+    25% {
+        transform: translate3d(20px, -30px, 50px) rotate(90deg) scale(1.1);
+    }
+    50% {
+        transform: translate3d(-15px, -20px, -30px) rotate(180deg) scale(0.9);
+    }
+    75% {
+        transform: translate3d(25px, -25px, 40px) rotate(270deg) scale(1.05);
+    }
+}
+    </style>
 </head>
 <body>
-    <!-- Pantalla de bienvenida -->
-    <div id="welcome-screen">
-        <div class="welcome-content">
-            <h1>💜 Para my Princess nalgona hemosa 💜</h1>
-            <p>Este universo fue creado con todo mi amor</p>
-            <p>para la mujer que ilumina mi vida</p>
-            <p style="margin-top: 30px; font-size: 1.1rem; color: var(--celeste-bebe);">
-                Nuestro amor brilla más que todas las estrellas juntas
-                ¡DEJA YA LA PILLAERA, BV!
-            </p>
-            <button class="start-button" onclick="startExperience()">
-                💖 Entra a Nuestro Mundo 💖
-            </button>
-            <div style="margin-top: 40px; font-size: 0.9rem; color: var(--lavanda);">
-                 Forever 🐻❤️🐰
-            </div>
-        </div>
-    </div>
+    <!-- Pantalla de bienvenida -->
+    <div id="welcome-screen">
+        <div class="welcome-content">
+            <h1>💜 Para my Princess nalgona hemosa 💜</h1>
+            <p>Este universo fue creado con todo mi amor</p>
+            <p>para la mujer que ilumina mi vida</p>
+            <p style="margin-top: 30px; font-size: 1.1rem; color: var(--celeste-bebe);">
+                Nuestro amor brilla más que todas las estrellas juntas
+                ¡DEJA YA LA PILLAERA, BV!
+            </p>
+            <button class="start-button" onclick="startExperience()">
+                💖 Entra a Nuestro Mundo 💖
+            </button>
+            <div style="margin-top: 40px; font-size: 0.9rem; color: var(--lavanda);">
+                 Forever 🐻❤️🐰
+            </div>
+        </div>
+    </div>
 
-    <!-- Transición entre escenas -->
-    <div id="scene-transition"></div>
+    <!-- Transición entre escenas -->
+    <div id="scene-transition"></div>
 
-    <!-- Contenedor principal -->
-    <div id="experience-container">
-        <!-- Escena 1: Jardín de Nieve -->
-        <div id="snow-garden" class="scene active"></div>
+    <!-- Contenedor principal -->
+    <div id="experience-container">
+        <!-- Escena 1: Jardín de Nieve -->
+        <div id="snow-garden" class="scene active"></div>
 
-        <!-- Escena 2: Universo Nuestro -->
-        <div id="universe" class="scene"></div>
+        <!-- Escena 2: Universo Nuestro -->
+        <div id="universe" class="scene"></div>
 
-        <!-- Escena 3: Hogar -->
-        <div id="k-drama-home" class="scene"></div>
+        <!-- Escena 3: Hogar -->
+        <div id="k-drama-home" class="scene"></div>
 
-        <!-- Escena 4: Galería de Amor -->
-        <div id="love-gallery" class="scene"></div>
-    </div>
+        <!-- Escena 4: Galería de Amor -->
+        <div id="love-gallery" class="scene"></div>
+    </div>
 
-    <!-- Navegación -->
-    <button class="nav-button nav-menu" onclick="toggleSceneMenu()">
-        <i class="fas fa-compass"></i>
-    </button>
-    <button class="nav-button nav-audio" onclick="toggleMusic()">
-        <i id="music-icon" class="fas fa-volume-up"></i>
-    </button>
-    <button class="nav-button nav-3d" onclick="toggle3DMode()">
-        <i class="fas fa-cube"></i>
-    </button>
-    <button class="nav-button nav-prev" onclick="previousScene()">
-        <i class="fas fa-chevron-left"></i>
-    </button>
-    <button class="nav-button nav-next" onclick="nextScene()">
-        <i class="fas fa-chevron-right"></i>
-    </button>
+    <!-- Navegación -->
+    <button class="nav-button nav-menu" onclick="toggleSceneMenu()">
+    <i class="fas fa-compass"></i>
+</button>
+<button class="nav-button nav-audio" onclick="toggleMusic()">
+    <i id="music-icon" class="fas fa-volume-up"></i>
+</button>
+<button class="nav-button nav-3d" onclick="toggle3DMode()">
+    <i class="fas fa-cube"></i>
+</button>
+<button class="nav-button nav-prev" onclick="previousScene()">
+    <i class="fas fa-chevron-left"></i>
+</button>
+<button class="nav-button nav-next" onclick="nextScene()">
+    <i class="fas fa-chevron-right"></i>
+</button>
 
-    <!-- Menú de escenas -->
-    <div id="scene-menu">
-        <button class="scene-option" onclick="loadScene(0)">❄️ Jardín de Nieve</button>
-        <button class="scene-option" onclick="loadScene(1)">🌌 Universo Nuestro</button>
-        <button class="scene-option" onclick="loadScene(2)">🏡 Hogar</button>
-        <button class="scene-option" onclick="loadScene(3)">💞 Galería de Amor</button>
-    </div>
+    <!-- Menú de escenas -->
+    <div id="scene-menu">
+        <button class="scene-option" onclick="loadScene(0)">❄️ Jardín de Nieve</button>
+        <button class="scene-option" onclick="loadScene(1)">🌌 Universo Nuestro</button>
+        <button class="scene-option" onclick="loadScene(2)">🏡 Hogar</button>
+        <button class="scene-option" onclick="loadScene(3)">💞 Galería de Amor</button>
+    </div>
 
-    <!-- Indicador de escena -->
-    <div class="scene-indicator" id="scene-indicator">
-        ❄️ Jardín de Nieve
-    </div>
+    <!-- Indicador de escena -->
+    <div class="scene-indicator" id="scene-indicator">
+        ❄️ Jardín de Nieve
+    </div>
 
-    <script>
-        // ========== CONFIGURACIÓN ==========
-        const scenes = [
-            { 
-                id: 'snow-garden', 
-                name: '❄️ Jardín',
-                music: 'https://literland.github.io/mytaekook/Snow%20Flower%20(feat.%20Peakboy).mp3'
-            },
-            { 
-                id: 'universe', 
-                name: '🌌 Nuestro Universo',
-                music: 'https://literland.github.io/mytaekook/Best%20Of%20Me.mp3'
-            },
-            { 
-                id: 'k-drama-home', 
-                name: '🏡 Hogar',
-                music: 'https://literland.github.io/mytaekook/HOME.mp3'
-            },
-            { 
-                id: 'love-gallery', 
-                name: '💞 Galería del Alma',
-                music: 'https://literland.github.io/mytaekook/Confess%20To%20You.mp3'
-            }
-        ];
+    <script>
+        // ========== CONFIGURACIÓN ==========
+        const scenes = [
+            { 
+                id: 'snow-garden', 
+                name: '❄️ Jardín',
+                music: 'https://literland.github.io/mytaekook/Snow%20Flower%20(feat.%20Peakboy).mp3'
+            },
+            { 
+                id: 'universe', 
+                name: '🌌 Nuestro Universo',
+                music: 'https://literland.github.io/mytaekook/Best%20Of%20Me.mp3'
+            },
+            { 
+                id: 'k-drama-home', 
+                name: '🏡 Hogar',
+                music: 'https://literland.github.io/mytaekook/HOME.mp3'
+            },
+            { 
+                id: 'love-gallery', 
+                name: '💞 Galería del Alma',
+                music: 'https://literland.github.io/mytaekook/Confess%20To%20You.mp3'
+            }
+        ];
 
-        const photos = [
-            'https://literland.github.io/mytaekook/14d8c2703f5903579bd3d8e809f7dd39.jpg',
-            'https://literland.github.io/mytaekook/17ac5a41c03f28b8ef49f4292390d48d.jpg',
-            'https://literland.github.io/mytaekook/20240721_183505_lmc_8.4.NIGHT.jpg',
-            'https://literland.github.io/mytaekook/20240729_204443_lmc_8.4.NIGHT.jpg',
-            'https://literland.github.io/mytaekook/7b53f54291b6bc7d5fdd7abbdfe6bfd3.jpg',
-            'https://literland.github.io/mytaekook/8f3e162fade4cafcc3840ab9fe9e8a83.jpg',
-            'https://literland.github.io/mytaekook/IMG_20240721_182828.jpg',
-            'https://literland.github.io/mytaekook/IMG_20240804_155001.jpg',
-            'https://literland.github.io/mytaekook/image%20(1).jpg',
-            'https://literland.github.io/mytaekook/image.jpg',
-            'https://literland.github.io/mytaekook/images%20(1).jpeg',
-            'https://literland.github.io/mytaekook/images.jpeg',
-            // CORREGIDAS - URLs directas de GitHub Pages
-            'https://literland.github.io/mytaekook/flores.png',
-            'https://literland.github.io/mytaekook/demanos.png',
-            'https://literland.github.io/mytaekook/casados.png'
-        ];
+        const photos = [
+            'https://literland.github.io/mytaekook/14d8c2703f5903579bd3d8e809f7dd39.jpg',
+            'https://literland.github.io/mytaekook/17ac5a41c03f28b8ef49f4292390d48d.jpg',
+            'https://literland.github.io/mytaekook/20240721_183505_lmc_8.4.NIGHT.jpg',
+            'https://literland.github.io/mytaekook/20240729_204443_lmc_8.4.NIGHT.jpg',
+            'https://literland.github.io/mytaekook/7b53f54291b6bc7d5fdd7abbdfe6bfd3.jpg',
+            'https://literland.github.io/mytaekook/8f3e162fade4cafcc3840ab9fe9e8a83.jpg',
+            'https://literland.github.io/mytaekook/IMG_20240721_182828.jpg',
+            'https://literland.github.io/mytaekook/IMG_20240804_155001.jpg',
+            'https://literland.github.io/mytaekook/image%20(1).jpg',
+            'https://literland.github.io/mytaekook/image.jpg',
+            'https://literland.github.io/mytaekook/images%20(1).jpeg',
+            'https://literland.github.io/mytaekook/images.jpeg',
+            'https://github.com/Literland/mytaekook/blob/main/flores.png',
+            'https://github.com/Literland/mytaekook/blob/main/demanos.png',
+            'https://github.com/Literland/mytaekook/blob/main/casados.png'
+        ];
 
-        const messages = [
-            "💖 Eres mi todo, mi supitera",
-            "💜 TuyYo Forever",
-            "🌸 Nuestro amor es eterno, bebé", 
-            "✨ Eres mi estrella favorita",
-            "🐻🐰 soulmates forever",
-            "❄️ Nieve y amor infinito",
-            "🌟 Nuestro mikrokosmos",
-            "💕 Eres mi razón de ser",
-            "🦋 Vuelas en mi corazón",
-            "🎶 Nuestra canción favorita",
-            "🏡 Nuestro hogar eres tú",
-            "💘 Te amo más cada día"
-        ];
+        const messages = [
+            "💖 Eres mi todo, mi supitera",
+            "💜 TuyYo Forever",
+            "🌸 Nuestro amor es eterno, bebé", 
+            "✨ Eres mi estrella favorita",
+            "🐻🐰 soulmates forever",
+            "❄️ Nieve y amor infinito",
+            "🌟 Nuestro mikrokosmos",
+            "💕 Eres mi razón de ser",
+            "🦋 Vuelas en mi corazón",
+            "🎶 Nuestra canción favorita",
+            "🏡 Nuestro hogar eres tú",
+            "💘 Te amo más cada día"
+        ];
 
-        let currentSceneIndex = 0;
-        let isMusicPlaying = false;
-        let isExperienceStarted = false;
-        let currentAudio = null;
-        let is3DMode = false;
-        let mouseX = 0;
-        let mouseY = 0;
+        let currentSceneIndex = 0;
+        let isMusicPlaying = false;
+        let isExperienceStarted = false;
+        let currentAudio = null;
+        let is3DMode = false;
+        let mouseX = 0;
+        let mouseY = 0;
 
-        // ========== INICIALIZACIÓN ==========
-        function init() {
-            createSnowflakes();
-            createStars();
-            createFloatingHearts();
-            createBTSElements();
-            createSpecialMessages();
-            updateMusicIcon();
-            setupMouseTracking();
-        }
+        // ========== INICIALIZACIÓN ==========
+        function init() {
+            createSnowflakes();
+            createStars();
+            createFloatingHearts();
+            createBTSElements();
+            createSpecialMessages();
+            updateMusicIcon();
+            setupMouseTracking();
+        }
 
-        function startExperience() {
-            if (isExperienceStarted) return;
-            isExperienceStarted = true;
-            
-            document.getElementById('welcome-screen').style.display = 'none';
-            document.getElementById('experience-container').style.display = 'block';
-            
-            loadScene(0);
-        }
+        function startExperience() {
+            if (isExperienceStarted) return;
+            isExperienceStarted = true;
+            
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('experience-container').style.display = 'block';
+            
+            loadScene(0);
+        }
 
-        // ========== LIMPIEZA DE PARTÍCULAS ==========
-        function cleanupParticles() {
-            const particles = document.querySelectorAll('.heart-particle');
-            particles.forEach(particle => {
-                if (particle.parentNode) {
-                    particle.parentNode.removeChild(particle);
-                }
-            });
-        }
+        // ========== SISTEMA DE ESCENAS MEJORADO ==========
+        function loadScene(index) {
+            // Efecto de transición
+            const transition = document.getElementById('scene-transition');
+            transition.classList.add('active');
+            
+            setTimeout(() => {
+                currentSceneIndex = index;
+                const scene = scenes[index];
+                
+                document.querySelectorAll('.scene').forEach(scene => {
+                    scene.classList.remove('active');
+                });
+                
+                document.getElementById(scene.id).classList.add('active');
+                document.getElementById('scene-indicator').textContent = scene.name;
+                
+                loadSceneContent(scene.id);
+                document.getElementById('scene-menu').style.display = 'none';
+                
+                // Reproducir música de la escena actual
+                playSceneMusic(index);
+                
+                // Finalizar transición
+                setTimeout(() => {
+                    transition.classList.remove('active');
+                }, 300);
+            }, 500);
+        }
 
-        // ========== SISTEMA DE ESCENAS MEJORADO ==========
-        function loadScene(index) {
-            // Limpiar partículas de corazones de la escena anterior
-            cleanupParticles();
-            
-            // Efecto de transición
-            const transition = document.getElementById('scene-transition');
-            transition.classList.add('active');
-            
-            setTimeout(() => {
-                currentSceneIndex = index;
-                const scene = scenes[index];
-                
-                document.querySelectorAll('.scene').forEach(scene => {
-                    scene.classList.remove('active');
-                });
-                
-                document.getElementById(scene.id).classList.add('active');
-                document.getElementById('scene-indicator').textContent = scene.name;
-                
-                loadSceneContent(scene.id);
-                document.getElementById('scene-menu').style.display = 'none';
-                
-                // Reproducir música de la escena actual
-                playSceneMusic(index);
-                
-                // Finalizar transición
-                setTimeout(() => {
-                    transition.classList.remove('active');
-                }, 300);
-            }, 500);
-        }
+        function loadSceneContent(sceneId) {
+            const scene = document.getElementById(sceneId);
+            scene.innerHTML = '';
+            
+            switch(sceneId) {
+                case 'snow-garden':
+                    loadSnowGarden(scene);
+                    break;
+                case 'universe':
+                    loadUniverse(scene);
+                    break;
+                case 'k-drama-home':
+                    loadKdramaHome(scene);
+                    break;
+                case 'love-gallery':
+                    loadLoveGallery(scene);
+                    break;
+            }
+        }
 
-        function loadSceneContent(sceneId) {
-            const scene = document.getElementById(sceneId);
-            scene.innerHTML = '';
-            
-            switch(sceneId) {
-                case 'snow-garden':
-                    loadSnowGarden(scene);
-                    break;
-                case 'universe':
-                    loadUniverse(scene);
-                    break;
-                case 'k-drama-home':
-                    loadKdramaHome(scene);
-                    break;
-                case 'love-gallery':
-                    loadLoveGallery(scene);
-                    break;
-            }
-        }
+        function loadSnowGarden(scene) {
+            const positions = [
+                { x: 25, y: 30 }, { x: 75, y: 30 },
+                { x: 25, y: 70 }, { x: 75, y: 70 }
+            ];
+            
+            for (let i = 0; i < 4; i++) {
+                createDraggablePhoto(scene, i, positions[i]);
+            }
+            
+            createSceneMessage(scene, "❄️ Donde los sueños nacen", 50, 15);
+            createSceneMessage(scene, "💫 Y el amor florece", 50, 85);
+        }
 
-        function loadSnowGarden(scene) {
-            const positions = [
-                { x: 25, y: 30 }, { x: 75, y: 30 },
-                { x: 25, y: 70 }, { x: 75, y: 70 }
-            ];
-            
-            for (let i = 0; i < 4; i++) {
-                createDraggablePhoto(scene, i, positions[i]);
-            }
-            
-            createSceneMessage(scene, "❄️ Donde los sueños nacen", 50, 15);
-            createSceneMessage(scene, "💫 Y el amor florece", 50, 85);
-        }
+        function loadUniverse(scene) {
+            for (let i = 4; i < 8; i++) {
+                const angle = (i - 4) * (Math.PI / 2);
+                createDraggablePhoto(scene, i, {
+                    x: 50 + Math.cos(angle) * 30,
+                    y: 50 + Math.sin(angle) * 20
+                });
+            }
+            
+            createSceneMessage(scene, "🌌 Universo de posibilidades", 50, 10);
+            createSceneMessage(scene, "✨ Donde todo es posible", 50, 90);
+        }
 
-        function loadUniverse(scene) {
-            for (let i = 4; i < 8; i++) {
-                const angle = (i - 4) * (Math.PI / 2);
-                createDraggablePhoto(scene, i, {
-                    x: 50 + Math.cos(angle) * 30,
-                    y: 50 + Math.sin(angle) * 20
-                });
-            }
-            
-            createSceneMessage(scene, "🌌 Universo de posibilidades", 50, 10);
-            createSceneMessage(scene, "✨ Donde todo es posible", 50, 90);
-        }
+        function loadKdramaHome(scene) {
+            const positions = [
+                { x: 20, y: 25 }, { x: 80, y: 25 },
+                { x: 20, y: 75 }, { x: 80, y: 75 }
+            ];
+            
+            for (let i = 8; i < 12; i++) {
+                if (i - 8 < positions.length) {
+                    createDraggablePhoto(scene, i, positions[i - 8]);
+                }
+            }
+            
+            createSceneMessage(scene, "🏡 Nuestro dulce hogar", 50, 15);
+            createSceneMessage(scene, "💕 Donde el amor vive", 50, 85);
+        }
 
-        function loadKdramaHome(scene) {
-            const positions = [
-                { x: 20, y: 25 }, { x: 80, y: 25 },
-                { x: 20, y: 75 }, { x: 80, y: 75 }
-            ];
-            
-            for (let i = 8; i < 12; i++) {
-                if (i - 8 < positions.length) {
-                    createDraggablePhoto(scene, i, positions[i - 8]);
-                }
-            }
-            
-            createSceneMessage(scene, "🏡 Nuestro dulce hogar", 50, 15);
-            createSceneMessage(scene, "💕 Donde el amor vive", 50, 85);
-        }
+        function loadLoveGallery(scene) {
+            for (let i = 0; i < photos.length; i++) {
+                const row = Math.floor(i / 3);
+                const col = i % 3;
+                createDraggablePhoto(scene, i, {
+                    x: 20 + col * 30,
+                    y: 20 + row * 25
+                });
+            }
+            
+            createSceneMessage(scene, "💞 Nuestra historia de amor", 50, 10);
+            createSceneMessage(scene, "📸 Momentos eternos", 50, 90);
+        }
 
-        function loadLoveGallery(scene) {
-            for (let i = 0; i < photos.length; i++) {
-                const row = Math.floor(i / 3);
-                const col = i % 3;
-                createDraggablePhoto(scene, i, {
-                    x: 20 + col * 30,
-                    y: 20 + row * 25
-                });
-            }
-            
-            createSceneMessage(scene, "💞 Nuestra historia de amor", 50, 10);
-            createSceneMessage(scene, "📸 Momentos eternos", 50, 90);
-        }
+        function createDraggablePhoto(scene, photoIndex, position) {
+            const frame = document.createElement('div');
+            frame.className = 'photo-frame';
+            frame.style.left = position.x + '%';
+            frame.style.top = position.y + '%';
+            frame.dataset.photoIndex = photoIndex;
+            
+            const img = document.createElement('img');
+            img.src = photos[photoIndex];
+            img.alt = `Nuestra foto ${photoIndex + 1}`;
+            img.draggable = false;
+            
+            frame.appendChild(img);
+            scene.appendChild(frame);
+            
+            setupDragAndDrop(frame);
+            
+            frame.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                // Efecto de pulso
+                frame.classList.add('pulsing');
+                setTimeout(() => frame.classList.remove('pulsing'), 600);
+                
+                // Crear partículas de corazones
+                createHeartParticles(e.clientX, e.clientY);
+                
+                // Mostrar mensaje
+                showPhotoMessage(photoIndex, frame);
+            });
+        }
 
-        function createDraggablePhoto(scene, photoIndex, position) {
-            const frame = document.createElement('div');
-            frame.className = 'photo-frame';
-            frame.style.left = position.x + '%';
-            frame.style.top = position.y + '%';
-            frame.dataset.photoIndex = photoIndex;
-            
-            const img = document.createElement('img');
-            img.src = photos[photoIndex];
-            img.alt = `Nuestra foto ${photoIndex + 1}`;
-            img.draggable = false;
+        function createHeartParticles(x, y) {
+            const hearts = ['💖', '💕', '💞', '💓', '💗', '💘'];
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.className = 'heart-particle';
+                    heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+                    heart.style.left = x + 'px';
+                    heart.style.top = y + 'px';
+                    
+                    // Dirección aleatoria
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 100 + Math.random() * 100;
+                    const tx = Math.cos(angle) * distance;
+                    const ty = Math.sin(angle) * distance;
+                    
+                    heart.style.setProperty('--tx', tx + 'px');
+                    heart.style.setProperty('--ty', ty + 'px');
+                    
+                    document.body.appendChild(heart);
+                    
+                    setTimeout(() => heart.remove(), 1500);
+                }, i * 100);
+            }
+        }
 
-            // Manejar errores de carga
-            img.onerror = function() {
-                console.error('Error cargando imagen:', photos[photoIndex]);
-                // Crear placeholder en caso de error
-                img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhjYmU0Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlbiBubyBlbmNvbnRyYWRhPC90ZXh0Pjwvc3ZnPg==';
-            };
-            
-            frame.appendChild(img);
-            scene.appendChild(frame);
-            
-            setupDragAndDrop(frame);
-            
-            frame.addEventListener('click', (e) => {
-                e.stopPropagation();
-                
-                // Efecto de pulso
-                frame.classList.add('pulsing');
-                setTimeout(() => frame.classList.remove('pulsing'), 600);
-                
-                // Crear partículas de corazones
-                createHeartParticles(e.clientX, e.clientY);
-                
-                // Mostrar mensaje
-                showPhotoMessage(photoIndex, frame);
-            });
-        }
+        // ========== SISTEMA DE ARRASTRE MEJORADO ==========
+        function setupDragAndDrop(element) {
+            let isDragging = false;
+            let startX, startY;
+            let initialX, initialY;
+            
+            element.addEventListener('mousedown', startDrag);
+            element.addEventListener('touchstart', startDrag, { passive: false });
+            
+            function startDrag(e) {
+                isDragging = true;
+                element.classList.add('dragging');
+                
+                const rect = element.getBoundingClientRect();
+                initialX = rect.left;
+                initialY = rect.top;
+                
+                if (e.type === 'mousedown') {
+                    startX = e.clientX;
+                    startY = e.clientY;
+                } else {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    e.preventDefault();
+                }
+                
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('touchmove', drag, { passive: false });
+                document.addEventListener('mouseup', stopDrag);
+                document.addEventListener('touchend', stopDrag);
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                
+                let currentX, currentY;
+                
+                if (e.type === 'mousemove') {
+                    currentX = e.clientX;
+                    currentY = e.clientY;
+                } else {
+                    currentX = e.touches[0].clientX;
+                    currentY = e.touches[0].clientY;
+                    e.preventDefault();
+                }
+                
+                const deltaX = currentX - startX;
+                const deltaY = currentY - startY;
+                
+                element.style.left = (initialX + deltaX) + 'px';
+                element.style.top = (initialY + deltaY) + 'px';
+            }
+            
+            function stopDrag() {
+                if (!isDragging) return;
+                isDragging = false;
+                element.classList.remove('dragging');
+                
+                const rect = element.getBoundingClientRect();
+                const scene = element.parentElement;
+                const sceneRect = scene.getBoundingClientRect();
+                
+                const percentX = ((rect.left + rect.width/2 - sceneRect.left) / sceneRect.width) * 100;
+                const percentY = ((rect.top + rect.height/2 - sceneRect.top) / sceneRect.height) * 100;
+                
+                element.style.left = Math.max(5, Math.min(95, percentX)) + '%';
+                element.style.top = Math.max(5, Math.min(95, percentY)) + '%';
+                element.style.transform = 'translate(-50%, -50%)';
+                
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('touchmove', drag);
+                document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchend', stopDrag);
+            }
+        }
 
-        function createHeartParticles(x, y) {
-            const hearts = ['💖', '💕', '💞', '💓', '💗', '💘'];
-            for (let i = 0; i < 8; i++) {
-                setTimeout(() => {
-                    const heart = document.createElement('div');
-                    heart.className = 'heart-particle';
-                    heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
-                    heart.style.left = x + 'px';
-                    heart.style.top = y + 'px';
-                    
-                    // Dirección aleatoria
-                    const angle = Math.random() * Math.PI * 2;
-                    const distance = 100 + Math.random() * 100;
-                    const tx = Math.cos(angle) * distance;
-                    const ty = Math.sin(angle) * distance;
-                    
-                    heart.style.setProperty('--tx', tx + 'px');
-                    heart.style.setProperty('--ty', ty + 'px');
-                    
-                    document.body.appendChild(heart);
-                    
-                    setTimeout(() => heart.remove(), 1500);
-                }, i * 100);
-            }
-        }
+        function createSceneMessage(scene, text, x, y) {
+            const message = document.createElement('div');
+            message.className = 'special-message';
+            message.textContent = text;
+            message.style.left = x + '%';
+            message.style.top = y + '%';
+            scene.appendChild(message);
+        }
 
-        // ========== SISTEMA DE ARRASTRE MEJORADO ==========
-        function setupDragAndDrop(element) {
-            let isDragging = false;
-            let startX, startY;
-            let initialX, initialY;
-            
-            element.addEventListener('mousedown', startDrag);
-            element.addEventListener('touchstart', startDrag, { passive: false });
-            
-            function startDrag(e) {
-                isDragging = true;
-                element.classList.add('dragging');
-                
-                const rect = element.getBoundingClientRect();
-                initialX = rect.left;
-                initialY = rect.top;
-                
-                if (e.type === 'mousedown') {
-                    startX = e.clientX;
-                    startY = e.clientY;
-                } else {
-                    startX = e.touches[0].clientX;
-                    startY = e.touches[0].clientY;
-                    e.preventDefault();
-                }
-                
-                document.addEventListener('mousemove', drag);
-                document.addEventListener('touchmove', drag, { passive: false });
-                document.addEventListener('mouseup', stopDrag);
-                document.addEventListener('touchend', stopDrag);
-            }
-            
-            function drag(e) {
-                if (!isDragging) return;
-                
-                let currentX, currentY;
-                
-                if (e.type === 'mousemove') {
-                    currentX = e.clientX;
-                    currentY = e.clientY;
-                } else {
-                    currentX = e.touches[0].clientX;
-                    currentY = e.touches[0].clientY;
-                    e.preventDefault();
-                }
-                
-                const deltaX = currentX - startX;
-                const deltaY = currentY - startY;
-                
-                element.style.left = (initialX + deltaX) + 'px';
-                element.style.top = (initialY + deltaY) + 'px';
-            }
-            
-            function stopDrag() {
-                if (!isDragging) return;
-                isDragging = false;
-                element.classList.remove('dragging');
-                
-                const rect = element.getBoundingClientRect();
-                const scene = element.parentElement;
-                const sceneRect = scene.getBoundingClientRect();
-                
-                const percentX = ((rect.left + rect.width/2 - sceneRect.left) / sceneRect.width) * 100;
-                const percentY = ((rect.top + rect.height/2 - sceneRect.top) / sceneRect.height) * 100;
-                
-                element.style.left = Math.max(5, Math.min(95, percentX)) + '%';
-                element.style.top = Math.max(5, Math.min(95, percentY)) + '%';
-                element.style.transform = 'translate(-50%, -50%)';
-                
-                document.removeEventListener('mousemove', drag);
-                document.removeEventListener('touchmove', drag);
-                document.removeEventListener('mouseup', stopDrag);
-                document.removeEventListener('touchend', stopDrag);
-            }
-        }
+        function showPhotoMessage(photoIndex, element) {
+            const message = document.createElement('div');
+            message.className = 'special-message';
+            message.textContent = messages[photoIndex];
+            
+            const rect = element.getBoundingClientRect();
+            message.style.left = (rect.left + rect.width/2) + 'px';
+            message.style.top = (rect.top - 40) + 'px';
+            message.style.transform = 'translateX(-50%)';
+            message.style.animation = 'message-float 3s ease-in-out';
+            message.style.fontSize = '1.5rem';
+            
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+                message.style.opacity = '0';
+                setTimeout(() => message.remove(), 1000);
+            }, 2500);
+        }
 
-        function createSceneMessage(scene, text, x, y) {
-            const message = document.createElement('div');
-            message.className = 'special-message';
-            message.textContent = text;
-            message.style.left = x + '%';
-            message.style.top = y + '%';
-            scene.appendChild(message);
-        }
+        function nextScene() {
+            if (!isExperienceStarted) return;
+            const nextIndex = (currentSceneIndex + 1) % scenes.length;
+            loadScene(nextIndex);
+        }
 
-        function showPhotoMessage(photoIndex, element) {
-            const message = document.createElement('div');
-            message.className = 'special-message';
-            message.textContent = messages[photoIndex];
-            
-            const rect = element.getBoundingClientRect();
-            message.style.left = (rect.left + rect.width/2) + 'px';
-            message.style.top = (rect.top - 40) + 'px';
-            message.style.transform = 'translateX(-50%)';
-            message.style.animation = 'message-float 3s ease-in-out';
-            message.style.fontSize = '1.5rem';
-            
-            document.body.appendChild(message);
-            
-            setTimeout(() => {
-                message.style.opacity = '0';
-                setTimeout(() => message.remove(), 1000);
-            }, 2500);
-        }
+        function previousScene() {
+            if (!isExperienceStarted) return;
+            const prevIndex = (currentSceneIndex - 1 + scenes.length) % scenes.length;
+            loadScene(prevIndex);
+        }
 
-        function nextScene() {
-            if (!isExperienceStarted) return;
-            const nextIndex = (currentSceneIndex + 1) % scenes.length;
-            loadScene(nextIndex);
-        }
+        function toggleSceneMenu() {
+            const menu = document.getElementById('scene-menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
 
-        function previousScene() {
-            if (!isExperienceStarted) return;
-            const prevIndex = (currentSceneIndex - 1 + scenes.length) % scenes.length;
-            loadScene(prevIndex);
-        }
+        // ========== SISTEMA DE MÚSICA ==========
+        function playSceneMusic(sceneIndex) {
+            // Detener música actual si existe
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            
+            const scene = scenes[sceneIndex];
+            if (!scene.music) return;
+            
+            // Crear nuevo elemento de audio para esta escena
+            currentAudio = new Audio(scene.music);
+            currentAudio.volume = 0.5;
+            currentAudio.loop = true;
+            
+            const playPromise = currentAudio.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    isMusicPlaying = true;
+                    updateMusicIcon();
+                }).catch(error => {
+                    console.log('La reproducción automática fue bloqueada');
+                    createMusicActivationButton(sceneIndex);
+                });
+            }
+        }
 
-        function toggleSceneMenu() {
-            const menu = document.getElementById('scene-menu');
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-        }
+        function createMusicActivationButton(sceneIndex) {
+            if (document.getElementById('music-activation-btn')) return;
+            
+            const scene = scenes[sceneIndex];
+            const btn = document.createElement('button');
+            btn.id = 'music-activation-btn';
+            btn.innerHTML = `🎵 Activar Música: ${scene.name}`;
+                
+            document.body.appendChild(btn);
+            
+            btn.onclick = function() {
+                if (currentAudio) {
+                    currentAudio.play().then(() => {
+                        isMusicPlaying = true;
+                        updateMusicIcon();
+                        btn.style.transform = 'translateX(-50%) scale(0.9)';
+                        setTimeout(() => btn.remove(), 300);
+                    }).catch(err => {
+                        btn.innerHTML = '❌ Error - Click para intentar';
+                    });
+                }
+            };
+                            
+            setTimeout(() => {
+                if (btn.parentNode) btn.remove();
+            }, 10000);
+        }
 
-        // ========== SISTEMA DE MÚSICA ==========
-        function playSceneMusic(sceneIndex) {
-            // Detener música actual si existe
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio = null;
-            }
-            
-            const scene = scenes[sceneIndex];
-            if (!scene.music) return;
-            
-            // Crear nuevo elemento de audio para esta escena
-            currentAudio = new Audio(scene.music);
-            currentAudio.volume = 0.5;
-            currentAudio.loop = true;
-            
-            const playPromise = currentAudio.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    isMusicPlaying = true;
-                    updateMusicIcon();
-                }).catch(error => {
-                    console.log('La reproducción automática fue bloqueada');
-                    createMusicActivationButton(sceneIndex);
-                });
-            }
-        }
+        function toggleMusic() {
+            if (!currentAudio) return;
+            
+            if (isMusicPlaying) {
+                currentAudio.pause();
+                isMusicPlaying = false;
+            } else {
+                currentAudio.play().then(() => {
+                    isMusicPlaying = true;
+                }).catch(error => {
+                    createMusicActivationButton(currentSceneIndex);
+                });
+            }
+            updateMusicIcon();
+        }
 
-        function createMusicActivationButton(sceneIndex) {
-            if (document.getElementById('music-activation-btn')) return;
-            
-            const scene = scenes[sceneIndex];
-            const btn = document.createElement('button');
-            btn.id = 'music-activation-btn';
-            btn.innerHTML = `🎵 Activar Música: ${scene.name}`;
-                
-            document.body.appendChild(btn);
-            
-            btn.onclick = function() {
-                if (currentAudio) {
-                    currentAudio.play().then(() => {
-                        isMusicPlaying = true;
-                        updateMusicIcon();
-                        btn.style.transform = 'translateX(-50%) scale(0.9)';
-                        setTimeout(() => btn.remove(), 300);
-                    }).catch(err => {
-                        btn.innerHTML = '❌ Error - Click para intentar';
-                    });
-                }
-            };
-                            
-            setTimeout(() => {
-                if (btn.parentNode) btn.remove();
-            }, 10000);
-        }
+        function updateMusicIcon() {
+            const icon = document.getElementById('music-icon');
+            if (icon) {
+                icon.className = isMusicPlaying ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+            }
+        }
 
-        function toggleMusic() {
-            if (!currentAudio) return;
-            
-            if (isMusicPlaying) {
-                currentAudio.pause();
-                isMusicPlaying = false;
-            } else {
-                currentAudio.play().then(() => {
-                    isMusicPlaying = true;
-                }).catch(error => {
-                    createMusicActivationButton(currentSceneIndex);
-                });
-            }
-            updateMusicIcon();
-        }
+        // ========== EFECTOS VISUALES ==========
+        function createSnowflakes() {
+            for (let i = 0; i < 60; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                snowflake.style.left = Math.random() * 100 + 'vw';
+                snowflake.style.width = Math.random() * 5 + 3 + 'px';
+                snowflake.style.height = snowflake.style.width;
+                snowflake.style.animationDuration = Math.random() * 6 + 4 + 's';
+                snowflake.style.animationDelay = Math.random() * 10 + 's';
+                snowflake.style.opacity = Math.random() * 0.6 + 0.3;
+                document.body.appendChild(snowflake);
+            }
+        }
 
-        function updateMusicIcon() {
-            const icon = document.getElementById('music-icon');
-            if (icon) {
-                icon.className = isMusicPlaying ? 'fas fa-volume-up' : 'fas fa-volume-mute';
-            }
-        }
+        function createStars() {
+            for (let i = 0; i < 80; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + 'vw';
+                star.style.top = Math.random() * 100 + 'vh';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 8 + 's';
+                star.style.opacity = Math.random() * 0.5 + 0.2;
+                document.body.appendChild(star);
+            }
+        }
 
-        // ========== EFECTOS VISUALES ==========
-        function createSnowflakes() {
-            for (let i = 0; i < 60; i++) {
-                const snowflake = document.createElement('div');
-                snowflake.className = 'snowflake';
-                snowflake.style.left = Math.random() * 100 + 'vw';
-                snowflake.style.width = Math.random() * 5 + 3 + 'px';
-                snowflake.style.height = snowflake.style.width;
-                snowflake.style.animationDuration = Math.random() * 6 + 4 + 's';
-                snowflake.style.animationDelay = Math.random() * 10 + 's';
-                snowflake.style.opacity = Math.random() * 0.6 + 0.3;
-                document.body.appendChild(snowflake);
-            }
-        }
+        function createFloatingHearts() {
+            const hearts = ['💖', '💕', '💞', '💓', '💗', '💘', '💝'];
+            for (let i = 0; i < 20; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'floating-heart';
+                heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.top = Math.random() * 100 + 'vh';
+                heart.style.animationDelay = Math.random() * 15 + 's';
+                heart.style.fontSize = (Math.random() * 1.5 + 2) + 'rem';
+                document.body.appendChild(heart);
+            }
+        }
 
-        function createStars() {
-            for (let i = 0; i < 80; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = Math.random() * 100 + 'vw';
-                star.style.top = Math.random() * 100 + 'vh';
-                star.style.width = Math.random() * 3 + 1 + 'px';
-                star.style.height = star.style.width;
-                star.style.animationDelay = Math.random() * 8 + 's';
-                star.style.opacity = Math.random() * 0.5 + 0.2;
-                document.body.appendChild(star);
-            }
-        }
+        function createBTSElements() {
+            const btsSymbols = ['💜', '🐻', '🐰', '🌟', '✨', '🌙', '⭐'];
+            for (let i = 0; i < 15; i++) {
+                const element = document.createElement('div');
+                element.className = 'bts-element';
+                element.textContent = btsSymbols[Math.floor(Math.random() * btsSymbols.length)];
+                element.style.left = Math.random() * 100 + 'vw';
+                element.style.top = Math.random() * 100 + 'vh';
+                element.style.animationDelay = Math.random() * 20 + 's';
+                element.style.fontSize = (Math.random() * 1.5 + 2.2) + 'rem';
+                document.body.appendChild(element);
+            }
+        }
 
-        function createFloatingHearts() {
-            const hearts = ['💖', '💕', '💞', '💓', '💗', '💘', '💝'];
-            for (let i = 0; i < 20; i++) {
-                const heart = document.createElement('div');
-                heart.className = 'floating-heart';
-                heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
-                heart.style.left = Math.random() * 100 + 'vw';
-                heart.style.top = Math.random() * 100 + 'vh';
-                heart.style.animationDelay = Math.random() * 15 + 's';
-                heart.style.fontSize = (Math.random() * 1.5 + 2) + 'rem';
-                document.body.appendChild(heart);
-            }
-        }
+        function createSpecialMessages() {
+            const specialTexts = [
+                "TE AMO MI NALGONA", "FOREVER", 
+                "MY SUPITERA", "NUESTRO AMOR", "PARA SIEMPRE 💜", 
+                "TAE 🐻", "KOOK 🐰"
+            ];
+            
+            for (let i = 0; i < 12; i++) {
+                const message = document.createElement('div');
+                message.className = 'special-message';
+                message.textContent = specialTexts[Math.floor(Math.random() * specialTexts.length)];
+                message.style.left = Math.random() * 80 + 10 + '%';
+                message.style.top = Math.random() * 80 + 10 + '%';
+                message.style.animationDelay = Math.random() * 20 + 's';
+                message.style.fontSize = (Math.random() * 1 + 1.5) + 'rem';
+                document.body.appendChild(message);
+            }
+        }
 
-        function createBTSElements() {
-            const btsSymbols = ['💜', '🐻', '🐰', '🌟', '✨', '🌙', '⭐'];
-            for (let i = 0; i < 15; i++) {
-                const element = document.createElement('div');
-                element.className = 'bts-element';
-                element.textContent = btsSymbols[Math.floor(Math.random() * btsSymbols.length)];
-                element.style.left = Math.random() * 100 + 'vw';
-                element.style.top = Math.random() * 100 + 'vh';
-                element.style.animationDelay = Math.random() * 20 + 's';
-                element.style.fontSize = (Math.random() * 1.5 + 2.2) + 'rem';
-                document.body.appendChild(element);
-            }
-        }
+// ========== SISTEMA 3D INMERSIVO ==========
+function toggle3DMode() {
+    is3DMode = !is3DMode;
+    const currentScene = document.getElementById(scenes[currentSceneIndex].id);
+    
+    if (is3DMode) {
+        // Activar modo 3D
+        currentScene.classList.add('scene-3d', 'scene-3d-active');
+        create3DEnvironment(currentScene);
+        startParallaxEffect();
+        
+        // Actualizar botón
+        const btn3D = document.querySelector('.nav-3d');
+        btn3D.innerHTML = '<i class="fas fa-cube" style="color: #ff6b9d;"></i>';
+        btn3D.style.background = 'rgba(255, 107, 157, 0.6)';
+        
+    } else {
+        // Desactivar modo 3D
+        currentScene.classList.remove('scene-3d', 'scene-3d-active');
+        remove3DEnvironment(currentScene);
+        
+        // Restaurar botón
+        const btn3D = document.querySelector('.nav-3d');
+        btn3D.innerHTML = '<i class="fas fa-cube"></i>';
+        btn3D.style.background = 'rgba(165, 212, 233, 0.4)';
+    }
+}
 
-        function createSpecialMessages() {
-            const specialTexts = [
-                "TE AMO MI NALGONA", "FOREVER", 
-                "MY SUPITERA", "NUESTRO AMOR", "PARA SIEMPRE 💜", 
-                "TAE 🐻", "KOOK 🐰"
-            ];
-            
-            for (let i = 0; i < 12; i++) {
-                const message = document.createElement('div');
-                message.className = 'special-message';
-                message.textContent = specialTexts[Math.floor(Math.random() * specialTexts.length)];
-                message.style.left = Math.random() * 80 + 10 + '%';
-                message.style.top = Math.random() * 80 + 10 + '%';
-                message.style.animationDelay = Math.random() * 20 + 's';
-                message.style.fontSize = (Math.random() * 1 + 1.5) + 'rem';
-                document.body.appendChild(message);
-            }
-        }
+function create3DEnvironment(scene) {
+    // Limpiar escena primero
+    scene.innerHTML = '';
+    
+    // Crear contenedor parallax
+    const parallaxContainer = document.createElement('div');
+    parallaxContainer.className = 'parallax-container';
+    parallaxContainer.id = 'parallax-container';
+    
+    // Crear capas de profundidad
+    for (let i = 1; i <= 5; i++) {
+        const layer = document.createElement('div');
+        layer.className = `parallax-layer layer-${i}`;
+        layer.id = `layer-${i}`;
+        parallaxContainer.appendChild(layer);
+        
+        // Agregar partículas a cada capa
+        createParticlesForLayer(layer, i);
+    }
+    
+    // Agregar gradiente de fondo
+    const bgGradient = document.createElement('div');
+    bgGradient.className = 'bg-gradient-3d';
+    parallaxContainer.appendChild(bgGradient);
+    
+    scene.appendChild(parallaxContainer);
+    
+    // Crear fotos en 3D
+    create3DPhotos(scene);
+    
+    // Crear elementos decorativos 3D
+    create3DFloatingElements(scene);
+}
 
-        // ========== SISTEMA 3D INMERSIVO ==========
-        function toggle3DMode() {
-            is3DMode = !is3DMode;
-            const currentScene = document.getElementById(scenes[currentSceneIndex].id);
-            
-            if (is3DMode) {
-                // Activar modo 3D
-                currentScene.classList.add('scene-3d', 'scene-3d-active');
-                create3DEnvironment(currentScene);
-                startParallaxEffect();
-                
-                // Actualizar botón
-                const btn3D = document.querySelector('.nav-3d');
-                btn3D.innerHTML = '<i class="fas fa-cube" style="color: #ff6b9d;"></i>';
-                btn3D.style.background = 'rgba(255, 107, 157, 0.6)';
-                
-            } else {
-                // Desactivar modo 3D
-                currentScene.classList.remove('scene-3d', 'scene-3d-active');
-                remove3DEnvironment(currentScene);
-                
-                // Restaurar botón
-                const btn3D = document.querySelector('.nav-3d');
-                btn3D.innerHTML = '<i class="fas fa-cube"></i>';
-                btn3D.style.background = 'rgba(165, 212, 233, 0.4)';
-            }
-        }
+function createParticlesForLayer(layer, layerIndex) {
+    const particleCount = layerIndex * 8;
+    const particleTypes = ['heart', 'star', 'bubble'];
+    const colors = ['#FFB7C5', '#FFD1DC', '#D8BFD8', '#E6E6FA', '#B5EAD7', '#A7FFEB', '#87CEEB', '#FFF9C4'];
+    
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        const type = particleTypes[Math.floor(Math.random() * particleTypes.length)];
+        
+        particle.className = `particle-3d particle-${type}`;
+        
+        switch(type) {
+            case 'heart':
+                particle.innerHTML = '💖';
+                particle.style.color = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
+                break;
+            case 'star':
+                const size = Math.random() * 8 + 3;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                break;
+            case 'bubble':
+                const bubbleSize = Math.random() * 20 + 10;
+                particle.style.width = bubbleSize + 'px';
+                particle.style.height = bubbleSize + 'px';
+                particle.style.background = `radial-gradient(circle at 30% 30%, ${colors[Math.floor(Math.random() * colors.length)]}, transparent)`;
+                break;
+        }
+        
+        const startX = Math.random() * 120 - 10 + '%';
+        const startY = Math.random() * 120 - 10 + '%';
+        const endX = (Math.random() - 0.5) * 200 + '%';
+        const endY = (Math.random() - 0.5) * 200 + '%';
+        const startZ = -500 + (layerIndex * 100);
+        const endZ = 500 - (layerIndex * 100);
+        
+        particle.style.setProperty('--start-x', startX);
+        particle.style.setProperty('--start-y', startY);
+        particle.style.setProperty('--start-z', startZ + 'px');
+        particle.style.setProperty('--end-x', endX);
+        particle.style.setProperty('--end-y', endY);
+        particle.style.setProperty('--end-z', endZ + 'px');
+        particle.style.setProperty('--opacity', Math.random() * 0.7 + 0.3);
+        
+        const duration = 15 + Math.random() * 20;
+        const delay = Math.random() * 10;
+        particle.style.animationDuration = duration + 's';
+        particle.style.animationDelay = delay + 's';
+        
+        layer.appendChild(particle);
+    }
+}
 
-        function create3DEnvironment(scene) {
-            // Limpiar escena primero
-            scene.innerHTML = '';
-            
-            // Crear contenedor parallax
-            const parallaxContainer = document.createElement('div');
-            parallaxContainer.className = 'parallax-container';
-            parallaxContainer.id = 'parallax-container';
-            
-            // Crear capas de profundidad
-            for (let i = 1; i <= 5; i++) {
-                const layer = document.createElement('div');
-                layer.className = `parallax-layer layer-${i}`;
-                layer.id = `layer-${i}`;
-                parallaxContainer.appendChild(layer);
-                
-                // Agregar partículas a cada capa
-                createParticlesForLayer(layer, i);
-            }
-            
-            // Agregar gradiente de fondo
-            const bgGradient = document.createElement('div');
-            bgGradient.className = 'bg-gradient-3d';
-            parallaxContainer.appendChild(bgGradient);
-            
-            scene.appendChild(parallaxContainer);
-            
-            // Crear fotos en 3D
-            create3DPhotos(scene);
-            
-            // Crear elementos decorativos 3D
-            create3DFloatingElements(scene);
-        }
+function create3DPhotos(scene) {
+    const positions = [
+        { x: 25, y: 30, z: 50 }, { x: 75, y: 30, z: -30 },
+        { x: 25, y: 70, z: -20 }, { x: 75, y: 70, z: 40 },
+        { x: 50, y: 50, z: 0 }, { x: 30, y: 50, z: 25 },
+        { x: 70, y: 50, z: -25 }, { x: 50, y: 20, z: 15 }
+    ];
+    
+    for (let i = 0; i < Math.min(photos.length, 8); i++) {
+        const frame = document.createElement('div');
+        frame.className = 'photo-frame-3d';
+        frame.style.left = positions[i].x + '%';
+        frame.style.top = positions[i].y + '%';
+        frame.style.transform = `translateZ(${positions[i].z}px) rotateY(${Math.random() * 20 - 10}deg) rotateX(${Math.random() * 10 - 5}deg)`;
+        
+        const img = document.createElement('img');
+        img.src = photos[i];
+        img.alt = `Nuestra foto ${i + 1}`;
+        img.draggable = false;
+        
+        frame.appendChild(img);
+        parallaxContainer.appendChild(frame);
+        
+        setup3DDragAndDrop(frame);
+    }
+}
 
-        function createParticlesForLayer(layer, layerIndex) {
-            const particleCount = layerIndex * 8;
-            const particleTypes = ['heart', 'star', 'bubble'];
-            const colors = ['#FFB7C5', '#FFD1DC', '#D8BFD8', '#E6E6FA', '#B5EAD7', '#A7FFEB', '#87CEEB', '#FFF9C4'];
-            
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                const type = particleTypes[Math.floor(Math.random() * particleTypes.length)];
-                
-                particle.className = `particle-3d particle-${type}`;
-                
-                switch(type) {
-                    case 'heart':
-                        particle.innerHTML = '💖';
-                        particle.style.color = colors[Math.floor(Math.random() * colors.length)];
-                        particle.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
-                        break;
-                    case 'star':
-                        const size = Math.random() * 8 + 3;
-                        particle.style.width = size + 'px';
-                        particle.style.height = size + 'px';
-                        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-                        break;
-                    case 'bubble':
-                        const bubbleSize = Math.random() * 20 + 10;
-                        particle.style.width = bubbleSize + 'px';
-                        particle.style.height = bubbleSize + 'px';
-                        particle.style.background = `radial-gradient(circle at 30% 30%, ${colors[Math.floor(Math.random() * colors.length)]}, transparent)`;
-                        break;
-                }
-                
-                const startX = Math.random() * 120 - 10 + '%';
-                const startY = Math.random() * 120 - 10 + '%';
-                const endX = (Math.random() - 0.5) * 200 + '%';
-                const endY = (Math.random() - 0.5) * 200 + '%';
-                const startZ = -500 + (layerIndex * 100);
-                const endZ = 500 - (layerIndex * 100);
-                
-                particle.style.setProperty('--start-x', startX);
-                particle.style.setProperty('--start-y', startY);
-                particle.style.setProperty('--start-z', startZ + 'px');
-                particle.style.setProperty('--end-x', endX);
-                particle.style.setProperty('--end-y', endY);
-                particle.style.setProperty('--end-z', endZ + 'px');
-                particle.style.setProperty('--opacity', Math.random() * 0.7 + 0.3);
-                
-                const duration = 15 + Math.random() * 20;
-                const delay = Math.random() * 10;
-                particle.style.animationDuration = duration + 's';
-                particle.style.animationDelay = delay + 's';
-                
-                layer.appendChild(particle);
-            }
-        }
+function setup3DDragAndDrop(element) {
+    let isDragging = false;
+    let startX, startY;
+    let initialX, initialY;
+    
+    element.addEventListener('mousedown', startDrag);
+    element.addEventListener('touchstart', startDrag, { passive: false });
+    
+    function startDrag(e) {
+        isDragging = true;
+        element.classList.add('dragging');
+        
+        const rect = element.getBoundingClientRect();
+        initialX = parseFloat(element.style.left);
+        initialY = parseFloat(element.style.top);
+        
+        if (e.type === 'mousedown') {
+            startX = e.clientX;
+            startY = e.clientY;
+        } else {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            e.preventDefault();
+        }
+        
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('touchmove', drag, { passive: false });
+        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchend', stopDrag);
+    }
+    
+    function drag(e) {
+        if (!isDragging) return;
+        
+        let currentX, currentY;
+        
+        if (e.type === 'mousemove') {
+            currentX = e.clientX;
+            currentY = e.clientY;
+        } else {
+            currentX = e.touches[0].clientX;
+            currentY = e.touches[0].clientY;
+            e.preventDefault();
+        }
+        
+        const deltaX = currentX - startX;
+        const deltaY = currentY - startY;
+        
+        const newX = initialX + (deltaX / window.innerWidth) * 100;
+        const newY = initialY + (deltaY / window.innerHeight) * 100;
+        
+        element.style.left = Math.max(5, Math.min(95, newX)) + '%';
+        element.style.top = Math.max(5, Math.min(95, newY)) + '%';
+    }
+    
+    function stopDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+        element.classList.remove('dragging');
+        
+        document.removeEventListener('mousemove', drag);
+        document.removeEventListener('touchmove', drag);
+        document.removeEventListener('mouseup', stopDrag);
+        document.removeEventListener('touchend', stopDrag);
+    }
+}
 
-        function create3DPhotos(scene) {
-            const positions = [
-                { x: 25, y: 30, z: 50 }, { x: 75, y: 30, z: -30 },
-                { x: 25, y: 70, z: -20 }, { x: 75, y: 70, z: 40 },
-                { x: 50, y: 50, z: 0 }, { x: 30, y: 50, z: 25 },
-                { x: 70, y: 50, z: -25 }, { x: 50, y: 20, z: 15 }
-            ];
-            
-            for (let i = 0; i < Math.min(photos.length, 8); i++) {
-                const frame = document.createElement('div');
-                frame.className = 'photo-frame-3d';
-                frame.style.left = positions[i].x + '%';
-                frame.style.top = positions[i].y + '%';
-                frame.style.transform = `translateZ(${positions[i].z}px) rotateY(${Math.random() * 20 - 10}deg) rotateX(${Math.random() * 10 - 5}deg)`;
-                
-                const img = document.createElement('img');
-                img.src = photos[i];
-                img.alt = `Nuestra foto ${i + 1}`;
-                img.draggable = false;
-                
-                frame.appendChild(img);
-                const container = document.getElementById('parallax-container');
-                if (container) {
-                    container.appendChild(frame);
-                }
-                
-                setup3DDragAndDrop(frame);
-            }
-        }
+        function create3DFloatingElements(scene) {
+    const elements = ['💖', '💕', '💞', '✨', '🌟', '🦋', '🌸', '🎀'];
+    const container = scene.querySelector('.parallax-container');
+    
+    for (let i = 0; i < 12; i++) {
+        const element = document.createElement('div');
+        element.className = 'floating-element-3d';
+        element.innerHTML = elements[Math.floor(Math.random() * elements.length)];
+        element.style.left = Math.random() * 100 + '%';
+        element.style.top = Math.random() * 100 + '%';
+        element.style.color = ['#FFB7C5', '#D8BFD8', '#B5EAD7', '#87CEEB'][Math.floor(Math.random() * 4)];
+        element.style.fontSize = (Math.random() * 2 + 2) + 'rem';
+        element.style.animationDelay = Math.random() * 10 + 's';
+        
+        container.appendChild(element);
+    }
+}
+        
+function setupMouseTracking() {
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    });
+    
+    document.addEventListener('touchmove', (e) => {
+        if (e.touches[0]) {
+            mouseX = e.touches[0].clientX;
+            mouseY = e.touches[0].clientY;
+        }
+    });
+}
 
-        function setup3DDragAndDrop(element) {
-            let isDragging = false;
-            let startX, startY;
-            let initialX, initialY;
-            
-            element.addEventListener('mousedown', startDrag);
-            element.addEventListener('touchstart', startDrag, { passive: false });
-            
-            function startDrag(e) {
-                isDragging = true;
-                element.classList.add('dragging');
-                
-                const rect = element.getBoundingClientRect();
-                initialX = parseFloat(element.style.left);
-                initialY = parseFloat(element.style.top);
-                
-                if (e.type === 'mousedown') {
-                    startX = e.clientX;
-                    startY = e.clientY;
-                } else {
-                    startX = e.touches[0].clientX;
-                    startY = e.touches[0].clientY;
-                    e.preventDefault();
-                }
-                
-                document.addEventListener('mousemove', drag);
-                document.addEventListener('touchmove', drag, { passive: false });
-                document.addEventListener('mouseup', stopDrag);
-                document.addEventListener('touchend', stopDrag);
-            }
-            
-            function drag(e) {
-                if (!isDragging) return;
-                
-                let currentX, currentY;
-                
-                if (e.type === 'mousemove') {
-                    currentX = e.clientX;
-                    currentY = e.clientY;
-                } else {
-                    currentX = e.touches[0].clientX;
-                    currentY = e.touches[0].clientY;
-                    e.preventDefault();
-                }
-                
-                const deltaX = currentX - startX;
-                const deltaY = currentY - startY;
-                
-                const newX = initialX + (deltaX / window.innerWidth) * 100;
-                const newY = initialY + (deltaY / window.innerHeight) * 100;
-                
-                element.style.left = Math.max(5, Math.min(95, newX)) + '%';
-                element.style.top = Math.max(5, Math.min(95, newY)) + '%';
-            }
-            
-            function stopDrag() {
-                if (!isDragging) return;
-                isDragging = false;
-                element.classList.remove('dragging');
-                
-                document.removeEventListener('mousemove', drag);
-                document.removeEventListener('touchmove', drag);
-                document.removeEventListener('mouseup', stopDrag);
-                document.removeEventListener('touchend', stopDrag);
-            }
-        }
+function startParallaxEffect() {
+    function updateParallax() {
+        if (!is3DMode) return;
+        
+        const container = document.getElementById('parallax-container');
+        if (!container) return;
+        
+        const moveX = (mouseX / window.innerWidth - 0.5) * 50;
+        const moveY = (mouseY / window.innerHeight - 0.5) * 50;
+        
+        for (let i = 1; i <= 5; i++) {
+            const layer = document.getElementById(`layer-${i}`);
+            if (layer) {
+                const depth = i * 0.2;
+                layer.style.transform = `translate3d(${moveX * depth}px, ${moveY * depth}px, 0)`;
+            }
+        }
+        
+        requestAnimationFrame(updateParallax);
+    }
+    
+    updateParallax();
+}
 
-        function create3DFloatingElements(scene) {
-            const elements = ['💖', '💕', '💞', '✨', '🌟', '🦋', '🌸', '🎀'];
-            const container = scene.querySelector('.parallax-container');
-            
-            for (let i = 0; i < 12; i++) {
-                const element = document.createElement('div');
-                element.className = 'floating-element-3d';
-                element.innerHTML = elements[Math.floor(Math.random() * elements.length)];
-                element.style.left = Math.random() * 100 + '%';
-                element.style.top = Math.random() * 100 + '%';
-                element.style.color = ['#FFB7C5', '#D8BFD8', '#B5EAD7', '#87CEEB'][Math.floor(Math.random() * 4)];
-                element.style.fontSize = (Math.random() * 2 + 2) + 'rem';
-                element.style.animationDelay = Math.random() * 10 + 's';
-                
-                container.appendChild(element);
-            }
-        }
-        
-        function setupMouseTracking() {
-            document.addEventListener('mousemove', (e) => {
-                mouseX = e.clientX;
-                mouseY = e.clientY;
-            });
-            
-            document.addEventListener('touchmove', (e) => {
-                if (e.touches[0]) {
-                    mouseX = e.touches[0].clientX;
-                    mouseY = e.touches[0].clientY;
-                }
-            });
-        }
-
-        function startParallaxEffect() {
-            function updateParallax() {
-                if (!is3DMode) return;
-                
-                const container = document.getElementById('parallax-container');
-                if (!container) return;
-                
-                const moveX = (mouseX / window.innerWidth - 0.5) * 50;
-                const moveY = (mouseY / window.innerHeight - 0.5) * 50;
-                
-                for (let i = 1; i <= 5; i++) {
-                    const layer = document.getElementById(`layer-${i}`);
-                    if (layer) {
-                        const depth = i * 0.2;
-                        layer.style.transform = `translate3d(${moveX * depth}px, ${moveY * depth}px, 0)`;
-                    }
-                }
-                
-                requestAnimationFrame(updateParallax);
-            }
-            
-            updateParallax();
-        }
-
-        function remove3DEnvironment(scene) {
-            scene.innerHTML = '';
-            // Esto recargará el contenido normal de la escena
-            loadSceneContent(scenes[currentSceneIndex].id);
-        }
-        
-        // ========== INICIAR ==========
-        window.addEventListener('load', init);
-    </script>
+function remove3DEnvironment(scene) {
+    scene.innerHTML = '';
+    // Esto recargará el contenido normal de la escena
+    loadSceneContent(scenes[currentSceneIndex].id);
+}
+        
+        // ========== INICIAR ==========
+        window.addEventListener('load', init);
+    </script>
 </body>
 </html>
