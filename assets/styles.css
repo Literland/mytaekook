@@ -28,6 +28,64 @@ body, html {
     touch-action: manipulation;
 }
 
+/* Preloader */
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    transition: opacity 1s ease;
+}
+
+.loader-content {
+    text-align: center;
+}
+
+.loader-logo {
+    font-size: 4rem;
+    color: var(--purple-bts);
+    animation: pulse-logo 1.5s ease-in-out infinite;
+}
+
+.loader-text {
+    font-size: 1.2rem;
+    color: var(--lila-pastel);
+    margin-top: 1rem;
+}
+
+.progress-bar {
+    width: 250px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    margin: 1.5rem auto;
+    overflow: hidden;
+}
+
+.progress {
+    width: 0%;
+    height: 100%;
+    background: var(--rosa-neon);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.asset-counter {
+    font-size: 0.9rem;
+    color: var(--celeste-bebe);
+}
+
+@keyframes pulse-logo {
+    0%, 100% { transform: scale(1); text-shadow: 0 0 15px var(--purple-bts); }
+    50% { transform: scale(1.1); text-shadow: 0 0 25px var(--purple-bts); }
+}
+
 /* Pantalla de bienvenida */
 #welcome-screen {
     position: fixed;
@@ -210,9 +268,6 @@ body, html {
 .snowflake {
     position: absolute;
     color: white;
-    border-radius: 50%;
-    opacity: 0.9;
-    animation: fall linear infinite;
     pointer-events: none;
     z-index: 2;
 }
@@ -228,16 +283,16 @@ body, html {
 }
 
 /* Mensajes especiales */
-.special-message {
+.scene-message {
     position: absolute;
-    font-size: 1.3rem;
-    color: var(--rosa-neon);
-    text-shadow: 0 0 10px currentColor;
-    animation: message-float 5s ease-in-out infinite;
+    font-size: 1.8rem;
+    color: var(--lavanda);
+    text-shadow: 0 0 15px var(--lila-pastel);
     pointer-events: none;
     z-index: 8;
-    font-weight: 600;
+    font-weight: 400;
     text-align: center;
+    transform: translateX(-50%);
 }
 
 /* Botones de navegación */
@@ -395,10 +450,7 @@ body, html {
     50% { opacity: 1; transform: scale(1.3); }
 }
 
-@keyframes message-float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.7; }
-    50% { transform: translateY(-25px) rotate(5deg); opacity: 1; }
-}
+
 
 @keyframes photo-pulse {
     0%, 100% { transform: translate(-50%, -50%) scale(1); }
@@ -600,4 +652,42 @@ body, html {
     75% {
         transform: translate3d(25px, -25px, 40px) rotate(270deg) scale(1.05);
     }
+}
+
+.love-gallery-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    opacity: 0.2;
+    filter: blur(1px);
+}
+
+.love-gallery-background img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.photo-zoom-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+    cursor: pointer;
+}
+
+.photo-zoom-modal img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border: 5px solid white;
+    border-radius: 10px;
 }

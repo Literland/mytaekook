@@ -66,7 +66,6 @@ let mouseY = 0;
 
 // ========== INICIALIZACIÓN ==========
 function init() {
-    createSnowflakes();
     createStars();
     createFloatingHearts();
     createBTSElements();
@@ -116,9 +115,16 @@ function loadScene(index) {
 function loadSceneContent(sceneId) {
     const scene = document.getElementById(sceneId);
     scene.innerHTML = '';
-    
+
+    // Clear snowflakes if not in snow garden
+    if (sceneId !== 'snow-garden') {
+        const existingSnowflakes = document.querySelectorAll('.snowflake');
+        existingSnowflakes.forEach(flake => flake.remove());
+    }
+
     switch(sceneId) {
         case 'snow-garden':
+            createSnowflakes();
             loadSnowGarden(scene);
             break;
         case 'universe':
@@ -143,8 +149,8 @@ function loadSnowGarden(scene) {
         createDraggablePhoto(scene, i, positions[i]);
     }
     
-    createSceneMessage(scene, "❄️ Donde los sueños nacen", 50, 15);
-    createSceneMessage(scene, "💫 Y el amor florece", 50, 85);
+    createSceneMessage(scene, "Aquí florecen nuestros sueños.", 50, 15);
+    createSceneMessage(scene, "Un invierno junto a ti.", 50, 85);
 }
 
 function loadUniverse(scene) {
@@ -156,8 +162,8 @@ function loadUniverse(scene) {
         });
     }
     
-    createSceneMessage(scene, "🌌 Universo de posibilidades", 50, 10);
-    createSceneMessage(scene, "✨ Donde todo es posible", 50, 90);
+    createSceneMessage(scene, "Nuestro propio universo.", 50, 10);
+    createSceneMessage(scene, "Infinitas como las estrellas.", 50, 90);
 }
 
 function loadKdramaHome(scene) {
@@ -172,22 +178,35 @@ function loadKdramaHome(scene) {
         }
     }
     
-    createSceneMessage(scene, "🏡 Nuestro dulce hogar", 50, 15);
-    createSceneMessage(scene, "💕 Donde el amor vive", 50, 85);
+    createSceneMessage(scene, "Mi hogar eres tú.", 50, 15);
+    createSceneMessage(scene, "Aquí construimos nuestro amor.", 50, 85);
 }
 
 function loadLoveGallery(scene) {
+    const demanosIndex = photos.findIndex(photo => photo.includes('demanos.png'));
+
+    if (demanosIndex !== -1) {
+        const bgFrame = document.createElement('div');
+        bgFrame.className = 'love-gallery-background';
+        const bgImg = document.createElement('img');
+        bgImg.src = photos[demanosIndex];
+        bgFrame.appendChild(bgImg);
+        scene.appendChild(bgFrame);
+    }
+
     for (let i = 0; i < photos.length; i++) {
-        const row = Math.floor(i / 3);
-        const col = i % 3;
+        if (i === demanosIndex) continue; // Skip the background image
+
+        const row = Math.floor(i / 4);
+        const col = i % 4;
         createDraggablePhoto(scene, i, {
-            x: 20 + col * 30,
-            y: 20 + row * 25
+            x: 15 + col * 25,
+            y: 20 + row * 30
         });
     }
-    
-    createSceneMessage(scene, "💞 Nuestra historia de amor", 50, 10);
-    createSceneMessage(scene, "📸 Momentos eternos", 50, 90);
+
+    createSceneMessage(scene, "Nuestra historia, nuestro arte.", 50, 10);
+    createSceneMessage(scene, "Tesoros de nuestra memoria.", 50, 90);
 }
 
 function createDraggablePhoto(scene, photoIndex, position) {
@@ -196,29 +215,37 @@ function createDraggablePhoto(scene, photoIndex, position) {
     frame.style.left = position.x + '%';
     frame.style.top = position.y + '%';
     frame.dataset.photoIndex = photoIndex;
-    
+
     const img = document.createElement('img');
     img.src = photos[photoIndex];
     img.alt = `Nuestra foto ${photoIndex + 1}`;
     img.draggable = false;
-    
+
     frame.appendChild(img);
     scene.appendChild(frame);
-    
+
     setupDragAndDrop(frame);
+}
+
+function zoomInPhoto(src) {
+    const modal = document.createElement('div');
+    modal.className = 'photo-zoom-modal';
     
-    frame.addEventListener('click', (e) => {
-        e.stopPropagation();
-        
-        // Efecto de pulso
-        frame.classList.add('pulsing');
-        setTimeout(() => frame.classList.remove('pulsing'), 600);
-        
-        // Crear partículas de corazones
-        createHeartParticles(e.clientX, e.clientY);
-        
-        // Mostrar mensaje
-        showPhotoMessage(photoIndex, frame);
+    const img = document.createElement('img');
+    img.src = src;
+    
+    modal.appendChild(img);
+    document.body.appendChild(modal);
+    
+    gsap.from(modal, { opacity: 0, duration: 0.3 });
+    gsap.from(img, { scale: 0.8, duration: 0.3 });
+
+    modal.addEventListener('click', () => {
+        gsap.to(modal, { 
+            opacity: 0, 
+            duration: 0.3, 
+            onComplete: () => modal.remove() 
+        });
     });
 }
 
@@ -251,20 +278,21 @@ function createHeartParticles(x, y) {
 // ========== SISTEMA DE ARRASTRE MEJORADO ==========
 function setupDragAndDrop(element) {
     let isDragging = false;
-    let startX, startY;
+    let startX, startY, startTime;
     let initialX, initialY;
-    
+
     element.addEventListener('mousedown', startDrag);
     element.addEventListener('touchstart', startDrag, { passive: false });
-    
+
     function startDrag(e) {
-        isDragging = true;
+        isDragging = false;
         element.classList.add('dragging');
-        
+
         const rect = element.getBoundingClientRect();
         initialX = rect.left;
         initialY = rect.top;
-        
+        startTime = Date.now();
+
         if (e.type === 'mousedown') {
             startX = e.clientX;
             startY = e.clientY;
@@ -273,18 +301,17 @@ function setupDragAndDrop(element) {
             startY = e.touches[0].clientY;
             e.preventDefault();
         }
-        
+
         document.addEventListener('mousemove', drag);
         document.addEventListener('touchmove', drag, { passive: false });
         document.addEventListener('mouseup', stopDrag);
         document.addEventListener('touchend', stopDrag);
     }
-    
+
     function drag(e) {
-        if (!isDragging) return;
-        
+        isDragging = true;
         let currentX, currentY;
-        
+
         if (e.type === 'mousemove') {
             currentX = e.clientX;
             currentY = e.clientY;
@@ -293,30 +320,51 @@ function setupDragAndDrop(element) {
             currentY = e.touches[0].clientY;
             e.preventDefault();
         }
-        
+
         const deltaX = currentX - startX;
         const deltaY = currentY - startY;
-        
+
         element.style.left = (initialX + deltaX) + 'px';
         element.style.top = (initialY + deltaY) + 'px';
     }
-    
-    function stopDrag() {
-        if (!isDragging) return;
+
+    function stopDrag(e) {
+        const endTime = Date.now();
+        const deltaTime = endTime - startTime;
+
+        let endX, endY;
+        if (e.type === 'mouseup') {
+            endX = e.clientX;
+            endY = e.clientY;
+        } else {
+            endX = e.changedTouches[0].clientX;
+            endY = e.changedTouches[0].clientY;
+        }
+
+        const deltaX = endX - startX;
+        const deltaY = endY - startY;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        if (!isDragging && deltaTime < 200 && distance < 10) {
+            // It's a click, not a drag
+            const photoIndex = parseInt(element.dataset.photoIndex, 10);
+            zoomInPhoto(photos[photoIndex]);
+        }
+
         isDragging = false;
         element.classList.remove('dragging');
-        
+
         const rect = element.getBoundingClientRect();
         const scene = element.parentElement;
         const sceneRect = scene.getBoundingClientRect();
-        
-        const percentX = ((rect.left + rect.width/2 - sceneRect.left) / sceneRect.width) * 100;
-        const percentY = ((rect.top + rect.height/2 - sceneRect.top) / sceneRect.height) * 100;
-        
+
+        const percentX = ((rect.left + rect.width / 2 - sceneRect.left) / sceneRect.width) * 100;
+        const percentY = ((rect.top + rect.height / 2 - sceneRect.top) / sceneRect.height) * 100;
+
         element.style.left = Math.max(5, Math.min(95, percentX)) + '%';
         element.style.top = Math.max(5, Math.min(95, percentY)) + '%';
         element.style.transform = 'translate(-50%, -50%)';
-        
+
         document.removeEventListener('mousemove', drag);
         document.removeEventListener('touchmove', drag);
         document.removeEventListener('mouseup', stopDrag);
@@ -326,11 +374,19 @@ function setupDragAndDrop(element) {
 
 function createSceneMessage(scene, text, x, y) {
     const message = document.createElement('div');
-    message.className = 'special-message';
+    message.className = 'scene-message';
     message.textContent = text;
     message.style.left = x + '%';
     message.style.top = y + '%';
     scene.appendChild(message);
+
+    gsap.from(message, {
+        duration: 1.5,
+        opacity: 0,
+        y: 20,
+        ease: 'power3.out',
+        delay: 0.5
+    });
 }
 
 function showPhotoMessage(photoIndex, element) {
@@ -454,16 +510,32 @@ function updateMusicIcon() {
 // ========== EFECTOS VISUALES ==========
 function createSnowflakes() {
     const snowflakeChars = ['❄', '❆', '❅'];
-    for (let i = 0; i < 100; i++) {
+    const snowContainer = document.body;
+
+    // Clear existing snowflakes
+    const existingSnowflakes = document.querySelectorAll('.snowflake');
+    existingSnowflakes.forEach(flake => flake.remove());
+
+    for (let i = 0; i < 150; i++) {
         const snowflake = document.createElement('div');
         snowflake.className = 'snowflake';
         snowflake.textContent = snowflakeChars[Math.floor(Math.random() * snowflakeChars.length)];
-        snowflake.style.left = Math.random() * 100 + 'vw';
-        snowflake.style.fontSize = Math.random() * 1.5 + 0.5 + 'rem';
-        snowflake.style.animationDuration = Math.random() * 10 + 5 + 's';
-        snowflake.style.animationDelay = Math.random() * 10 + 's';
-        snowflake.style.opacity = Math.random() * 0.7 + 0.3;
-        document.body.appendChild(snowflake);
+        snowContainer.appendChild(snowflake);
+
+        gsap.set(snowflake, {
+            x: Math.random() * window.innerWidth,
+            y: -20,
+            fontSize: (Math.random() * 1.5 + 0.5) + 'rem',
+            opacity: Math.random() * 0.7 + 0.3,
+        });
+
+        gsap.to(snowflake, {
+            duration: Math.random() * 10 + 5,
+            y: window.innerHeight + 10,
+            ease: 'none',
+            repeat: -1,
+            delay: Math.random() * -15,
+        });
     }
 }
 
@@ -801,5 +873,67 @@ function remove3DEnvironment(scene) {
     loadSceneContent(scenes[currentSceneIndex].id);
 }
 
+// ========== PRELOADER LOGIC ==========
+function startPreloader() {
+    const assetsToLoad = [
+        ...photos,
+        ...scenes.map(s => s.music).filter(Boolean) // Filter out any scenes without music
+    ];
+    const totalAssets = assetsToLoad.length;
+    let loadedAssets = 0;
+
+    const preloader = document.getElementById('preloader');
+    const progressBar = document.querySelector('#preloader .progress');
+    const assetCounter = document.querySelector('#preloader .asset-counter');
+
+    if (totalAssets === 0) {
+        finishLoading();
+        return;
+    }
+
+    assetCounter.textContent = `${loadedAssets} / ${totalAssets}`;
+
+    function assetLoaded() {
+        loadedAssets++;
+        const progress = (loadedAssets / totalAssets) * 100;
+        progressBar.style.width = `${progress}%`;
+        assetCounter.textContent = `${loadedAssets} / ${totalAssets}`;
+
+        if (loadedAssets === totalAssets) {
+            finishLoading();
+        }
+    }
+
+    function finishLoading() {
+        setTimeout(() => {
+            gsap.to(preloader, { opacity: 0, duration: 1, onComplete: () => {
+                preloader.style.display = 'none';
+                // We don't call init() here anymore, the welcome screen will be displayed first
+            }});
+        }, 500); // A small delay for effect
+    }
+
+    assetsToLoad.forEach(url => {
+        if (url.match(/\.(jpeg|jpg|gif|png)$/)) {
+            const img = new Image();
+            img.src = url;
+            img.onload = assetLoaded;
+            img.onerror = assetLoaded; // Count errors as "loaded" to not block the app
+        } else if (url.match(/\.(mp3)$/)) {
+            const audio = new Audio();
+            audio.src = url;
+            // Using 'loadeddata' as it fires earlier than 'canplaythrough'
+            audio.onloadeddata = assetLoaded;
+            audio.onerror = assetLoaded; // Count errors as "loaded"
+        } else {
+            // For any other type or if the url is null/undefined, count it as loaded immediately
+            assetLoaded();
+        }
+    });
+}
+
 // ========== INICIAR ==========
-window.addEventListener('load', init);
+window.addEventListener('load', () => {
+    init(); // Call init to set up background effects
+    startPreloader(); // Then start preloading assets
+});
