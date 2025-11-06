@@ -183,7 +183,9 @@ body, html {
 
 /* Escena 1: Jardín de Nieve*/
 #snow-garden {
-    background: linear-gradient(135deg, #0a0a2a 0%, #1a1a4a 50%, #2a2a6a 100%);
+    background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('../Photos/winterbear.jpg');
+    background-size: cover;
+    background-position: center;
 }
 
 /* Escena 2: Universo Nuestro */
@@ -236,6 +238,15 @@ body, html {
     object-fit: cover;
     border-radius: 10px;
     pointer-events: none;
+    transition: filter 0.5s ease;
+}
+
+.photo-frame.frosty img {
+    filter: blur(4px) grayscale(0.3);
+}
+
+.photo-frame.frosty:hover img {
+    filter: blur(0) grayscale(0);
 }
 
 /* Partículas de corazones */

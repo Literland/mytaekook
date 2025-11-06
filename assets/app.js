@@ -1,3 +1,16 @@
+
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { DragControls } from 'three/addons/controls/DragControls.js';
+
+// ========== THREE.JS SCENE GLOBALS ==========
+let universeScene, camera, renderer, controls, constellationSphere;
+let shootingStars = [];
+let animationFrameId;
+
+let galleryScene, galleryCamera, galleryRenderer, galleryControls, dragControls, draggablePhotos = [];
+let galleryAnimationFrameId;
+
 // ========== CONFIGURACIÓN ==========
 const scenes = [
     { 
@@ -35,7 +48,6 @@ const photos = [
     'Photos/image.jpg',
     'Photos/images (1).jpeg',
     'Photos/images.jpeg',
-    'Photos/images.jpeg',
     'Photos/flores.png',
     'Photos/demanos.png',
     'Photos/casados.png'
@@ -60,16 +72,9 @@ let currentSceneIndex = 0;
 let isMusicPlaying = false;
 let isExperienceStarted = false;
 let currentAudio = null;
-let is3DMode = false;
-let mouseX = 0;
-let mouseY = 0;
 
 // ========== INICIALIZACIÓN ==========
 function init() {
-    createStars();
-    createFloatingHearts();
-    createBTSElements();
-    createSpecialMessages();
     updateMusicIcon();
     setupMouseTracking();
 }
@@ -86,55 +91,66 @@ function startExperience() {
 
 // ========== SISTEMA DE ESCENAS MEJORADO ==========
 function loadScene(index) {
-    // Efecto de transición
+    // Cleanup previous 3D scenes if active
+    if (scenes[currentSceneIndex].id === 'universe') {
+        cleanupUniverseScene();
+    }
+    if (scenes[currentSceneIndex].id === 'love-gallery') {
+        cleanupGalleryScene();
+    }
+
     const transition = document.getElementById('scene-transition');
     transition.classList.add('active');
 
     currentSceneIndex = index;
     const scene = scenes[index];
 
-    document.querySelectorAll('.scene').forEach(scene => {
-        scene.classList.remove('active');
+    document.querySelectorAll('.scene').forEach(s => {
+        s.classList.remove('active');
     });
 
-    document.getElementById(scene.id).classList.add('active');
+    const sceneContainer = document.getElementById(scene.id);
+    sceneContainer.classList.add('active');
     document.getElementById('scene-indicator').textContent = scene.name;
 
     loadSceneContent(scene.id);
     document.getElementById('scene-menu').style.display = 'none';
 
-    // Reproducir música de la escena actual
     playSceneMusic(index);
 
-    // Finalizar transición
     setTimeout(() => {
         transition.classList.remove('active');
     }, 300);
 }
 
 function loadSceneContent(sceneId) {
-    const scene = document.getElementById(sceneId);
-    scene.innerHTML = '';
+    const sceneContainer = document.getElementById(sceneId);
+    sceneContainer.innerHTML = '';
+    
+    cleanup2DEffects();
 
-    // Clear snowflakes if not in snow garden
     if (sceneId !== 'snow-garden') {
         const existingSnowflakes = document.querySelectorAll('.snowflake');
         existingSnowflakes.forEach(flake => flake.remove());
     }
 
+    if (sceneId !== 'universe' && sceneId !== 'love-gallery') {
+        create2DEffects();
+    }
+
     switch(sceneId) {
         case 'snow-garden':
             createSnowflakes();
-            loadSnowGarden(scene);
+            loadSnowGarden(sceneContainer);
             break;
         case 'universe':
-            loadUniverse(scene);
+            loadUniverse(sceneContainer);
             break;
         case 'k-drama-home':
-            loadKdramaHome(scene);
+            loadKdramaHome(sceneContainer);
             break;
         case 'love-gallery':
-            loadLoveGallery(scene);
+            loadLoveGallery(sceneContainer);
             break;
     }
 }
@@ -153,19 +169,6 @@ function loadSnowGarden(scene) {
     createSceneMessage(scene, "Un invierno junto a ti.", 50, 85);
 }
 
-function loadUniverse(scene) {
-    for (let i = 4; i < 8; i++) {
-        const angle = (i - 4) * (Math.PI / 2);
-        createDraggablePhoto(scene, i, {
-            x: 50 + Math.cos(angle) * 30,
-            y: 50 + Math.sin(angle) * 20
-        });
-    }
-    
-    createSceneMessage(scene, "Nuestro propio universo.", 50, 10);
-    createSceneMessage(scene, "Infinitas como las estrellas.", 50, 90);
-}
-
 function loadKdramaHome(scene) {
     const positions = [
         { x: 20, y: 25 }, { x: 80, y: 25 },
@@ -182,39 +185,16 @@ function loadKdramaHome(scene) {
     createSceneMessage(scene, "Aquí construimos nuestro amor.", 50, 85);
 }
 
-function loadLoveGallery(scene) {
-    const demanosIndex = photos.findIndex(photo => photo.includes('demanos.png'));
-
-    if (demanosIndex !== -1) {
-        const bgFrame = document.createElement('div');
-        bgFrame.className = 'love-gallery-background';
-        const bgImg = document.createElement('img');
-        bgImg.src = photos[demanosIndex];
-        bgFrame.appendChild(bgImg);
-        scene.appendChild(bgFrame);
-    }
-
-    for (let i = 0; i < photos.length; i++) {
-        if (i === demanosIndex) continue; // Skip the background image
-
-        const row = Math.floor(i / 4);
-        const col = i % 4;
-        createDraggablePhoto(scene, i, {
-            x: 15 + col * 25,
-            y: 20 + row * 30
-        });
-    }
-
-    createSceneMessage(scene, "Nuestra historia, nuestro arte.", 50, 10);
-    createSceneMessage(scene, "Tesoros de nuestra memoria.", 50, 90);
-}
-
 function createDraggablePhoto(scene, photoIndex, position) {
     const frame = document.createElement('div');
     frame.className = 'photo-frame';
     frame.style.left = position.x + '%';
     frame.style.top = position.y + '%';
     frame.dataset.photoIndex = photoIndex;
+
+    if (scene.id === 'snow-garden') {
+        frame.classList.add('frosty');
+    }
 
     const img = document.createElement('img');
     img.src = photos[photoIndex];
@@ -259,7 +239,6 @@ function createHeartParticles(x, y) {
             heart.style.left = x + 'px';
             heart.style.top = y + 'px';
             
-            // Dirección aleatoria
             const angle = Math.random() * Math.PI * 2;
             const distance = 100 + Math.random() * 100;
             const tx = Math.cos(angle) * distance;
@@ -275,7 +254,6 @@ function createHeartParticles(x, y) {
     }
 }
 
-// ========== SISTEMA DE ARRASTRE MEJORADO ==========
 function setupDragAndDrop(element) {
     let isDragging = false;
     let startX, startY, startTime;
@@ -346,7 +324,6 @@ function setupDragAndDrop(element) {
         const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
         if (!isDragging && deltaTime < 200 && distance < 10) {
-            // It's a click, not a drag
             const photoIndex = parseInt(element.dataset.photoIndex, 10);
             zoomInPhoto(photos[photoIndex]);
         }
@@ -380,45 +357,285 @@ function createSceneMessage(scene, text, x, y) {
     message.style.top = y + '%';
     scene.appendChild(message);
 
-    gsap.from(message, {
-        duration: 1.5,
-        opacity: 0,
-        y: 20,
-        ease: 'power3.out',
-        delay: 0.5
-    });
+    gsap.from(message, { duration: 1.5, opacity: 0, y: 20, ease: 'power3.out', delay: 0.5 });
 }
 
-function showPhotoMessage(photoIndex, element) {
-    const message = document.createElement('div');
-    message.className = 'special-message';
-    message.textContent = messages[photoIndex];
+// ========== 3D UNIVERSE SCENE ==========
+
+function loadUniverse(sceneContainer) {
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    sceneContainer.appendChild(renderer.domElement);
+
+    universeScene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+    camera.position.z = 50;
+
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.screenSpacePanning = false;
+    controls.minDistance = 5;
+    controls.maxDistance = 300;
+
+    const textureLoader = new THREE.TextureLoader();
+
+    // Background
+    textureLoader.load('Photos/universo.jpg.jpg', (texture) => {
+        const bgSphere = new THREE.SphereGeometry(1000, 60, 40);
+        const bgMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide });
+        const background = new THREE.Mesh(bgSphere, bgMaterial);
+        universeScene.add(background);
+    });
+
+    // Constellations
+    textureLoader.load('Photos/constelaciones.png', (texture) => {
+        const constellationMaterial = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            opacity: 0.8
+        });
+        const constellationSphereGeo = new THREE.SphereGeometry(990, 60, 40);
+        constellationSphere = new THREE.Mesh(constellationSphereGeo, constellationMaterial);
+        universeScene.add(constellationSphere);
+    });
+
+    // Starfield
+    const starVertices = [];
+    for (let i = 0; i < 20000; i++) {
+        const x = (Math.random() - 0.5) * 2500;
+        const y = (Math.random() - 0.5) * 2500;
+        const z = (Math.random() - 0.5) * 2500;
+        starVertices.push(x, y, z);
+    }
+    const starGeometry = new THREE.BufferGeometry();
+    starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+    const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.8, transparent: true, opacity: 0.9 });
+    const stars = new THREE.Points(starGeometry, starMaterial);
+    universeScene.add(stars);
+
+    // Photo planes
+    const photoIndices = [4, 5, 6, 7, 8, 9, 10, 11];
+    photoIndices.forEach((photoIndex) => {
+        textureLoader.load(photos[photoIndex], (texture) => {
+            const planeGeo = new THREE.PlaneGeometry(15, 18);
+            const planeMat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+            const plane = new THREE.Mesh(planeGeo, planeMat);
+            
+            plane.position.set((Math.random() - 0.5) * 100, (Math.random() - 0.5) * 50, (Math.random() - 0.5) * 80);
+            plane.rotation.set((Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 0.2);
+            universeScene.add(plane);
+        });
+    });
+
+    createShootingStars();
     
-    const rect = element.getBoundingClientRect();
-    message.style.left = (rect.left + rect.width/2) + 'px';
-    message.style.top = (rect.top - 40) + 'px';
-    message.style.transform = 'translateX(-50%)';
-    message.style.animation = 'message-float 3s ease-in-out';
-    message.style.fontSize = '1.5rem';
-    
-    document.body.appendChild(message);
-    
-    setTimeout(() => {
-        message.style.opacity = '0';
-        setTimeout(() => message.remove(), 1000);
-    }, 2500);
+    window.addEventListener('resize', onWindowResize, false);
+
+    animateUniverse();
 }
+
+function createShootingStars() {
+    for (let i = 0; i < 5; i++) {
+        const geometry = new THREE.BufferGeometry();
+        const vertices = new Float32Array([-1, 0, 0, 1, 0, 0]);
+        geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+        const material = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2, transparent: true, opacity: 0.8 });
+        const shootingStar = new THREE.Line(geometry, material);
+        
+        resetShootingStar(shootingStar);
+        shootingStars.push(shootingStar);
+        universeScene.add(shootingStar);
+    }
+}
+
+function resetShootingStar(star) {
+    star.position.set(
+        (Math.random() - 0.5) * 1500,
+        Math.random() * 500 + 200,
+        (Math.random() - 0.5) * 1500
+    );
+    star.velocity = new THREE.Vector3(
+        (Math.random() - 0.5) * 20,
+        -Math.random() * 5 - 5,
+        (Math.random() - 0.5) * 20
+    );
+    star.scale.x = 20;
+}
+
+function animateUniverse() {
+    animationFrameId = requestAnimationFrame(animateUniverse);
+
+    if (constellationSphere) {
+        constellationSphere.rotation.y += 0.0001;
+        constellationSphere.rotation.x += 0.00005;
+    }
+
+    shootingStars.forEach(star => {
+        star.position.add(star.velocity);
+        if (star.position.y < -500) {
+            resetShootingStar(star);
+        }
+    });
+
+    controls.update();
+    renderer.render(universeScene, camera);
+}
+
+function cleanupUniverseScene() {
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+    }
+    window.removeEventListener('resize', onWindowResize);
+    shootingStars = [];
+    if (renderer) {
+        renderer.dispose();
+        renderer.forceContextLoss();
+        const oldCanvas = renderer.domElement;
+        if (oldCanvas && oldCanvas.parentNode) {
+            oldCanvas.parentNode.removeChild(oldCanvas);
+        }
+        renderer = null;
+    }
+    universeScene = null;
+    camera = null;
+    controls = null;
+    constellationSphere = null;
+}
+
+function onWindowResize() {
+    if (camera && renderer) {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+}
+
+// ========== 3D GALLERY SCENE ==========
+
+const GRID_SIZE = 30; // Size of the snapping grid
+const GRID_DIMENSIONS = 5; // Number of grid points in each dimension
+
+function loadLoveGallery(sceneContainer) {
+    galleryRenderer = new THREE.WebGLRenderer({ antialias: true });
+    galleryRenderer.setSize(window.innerWidth, window.innerHeight);
+    galleryRenderer.setPixelRatio(window.devicePixelRatio);
+    sceneContainer.appendChild(galleryRenderer.domElement);
+
+    galleryScene = new THREE.Scene();
+    galleryCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    galleryCamera.position.z = 50;
+
+    galleryControls = new OrbitControls(galleryCamera, galleryRenderer.domElement);
+    galleryControls.enableDamping = true;
+    galleryControls.dampingFactor = 0.05;
+    galleryControls.screenSpacePanning = true; // Allow panning
+    galleryControls.minDistance = 10;
+    galleryControls.maxDistance = 200;
+
+    // Background: simple dark gradient or color
+    galleryScene.background = new THREE.Color(0x1a1a1a);
+
+    const textureLoader = new THREE.TextureLoader();
+    draggablePhotos = [];
+
+    // Create photo planes
+    photos.forEach((photoUrl, index) => {
+        textureLoader.load(photoUrl, (texture) => {
+            const planeGeo = new THREE.PlaneGeometry(15, 18);
+            const planeMat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+            const plane = new THREE.Mesh(planeGeo, planeMat);
+            
+            plane.position.set(
+                (Math.random() - 0.5) * 80,
+                (Math.random() - 0.5) * 60,
+                (Math.random() - 0.5) * 40
+            );
+            plane.rotation.set(
+                (Math.random() - 0.5) * 0.2,
+                (Math.random() - 0.5) * 0.2,
+                (Math.random() - 0.5) * 0.2
+            );
+            galleryScene.add(plane);
+            draggablePhotos.push(plane);
+        });
+    });
+
+    // Drag Controls
+    dragControls = new DragControls(draggablePhotos, galleryCamera, galleryRenderer.domElement);
+    dragControls.addEventListener('dragstart', function (event) {
+        galleryControls.enabled = false; // Disable orbit controls during drag
+        event.object.material.emissive.set(0xaaaaaa); // Highlight dragged object
+    });
+
+    dragControls.addEventListener('dragend', function (event) {
+        galleryControls.enabled = true; // Re-enable orbit controls
+        event.object.material.emissive.set(0x000000); // Remove highlight
+        snapToGrid(event.object); // Snap to grid
+    });
+
+    // Snapping Grid Logic
+    function snapToGrid(object) {
+        const x = Math.round(object.position.x / GRID_SIZE) * GRID_SIZE;
+        const y = Math.round(object.position.y / GRID_SIZE) * GRID_SIZE;
+        const z = Math.round(object.position.z / GRID_SIZE) * GRID_SIZE;
+        
+        gsap.to(object.position, { x: x, y: y, z: z, duration: 0.3, ease: "power2.out" });
+    }
+
+    window.addEventListener('resize', onWindowResizeGallery, false);
+
+    animateGallery();
+}
+
+function animateGallery() {
+    galleryAnimationFrameId = requestAnimationFrame(animateGallery);
+    galleryControls.update();
+    galleryRenderer.render(galleryScene, galleryCamera);
+}
+
+function cleanupGalleryScene() {
+    if (galleryAnimationFrameId) {
+        cancelAnimationFrame(galleryAnimationFrameId);
+    }
+    window.removeEventListener('resize', onWindowResizeGallery);
+    if (galleryRenderer) {
+        galleryRenderer.dispose();
+        galleryRenderer.forceContextLoss();
+        const oldCanvas = galleryRenderer.domElement;
+        if (oldCanvas && oldCanvas.parentNode) {
+            oldCanvas.parentNode.removeChild(oldCanvas);
+        }
+        galleryRenderer = null;
+    }
+    galleryScene = null;
+    galleryCamera = null;
+    galleryControls = null;
+    dragControls = null;
+    draggablePhotos = [];
+}
+
+function onWindowResizeGallery() {
+    if (galleryCamera && galleryRenderer) {
+        galleryCamera.aspect = window.innerWidth / window.innerHeight;
+        galleryCamera.updateProjectionMatrix();
+        galleryRenderer.setSize(window.innerWidth, window.innerHeight);
+    }
+}
+
+// ========== NAVIGATION AND UI ==========
 
 function nextScene() {
     if (!isExperienceStarted) return;
-    const nextIndex = (currentSceneIndex + 1) % scenes.length;
-    loadScene(nextIndex);
+    loadScene((currentSceneIndex + 1) % scenes.length);
 }
 
 function previousScene() {
     if (!isExperienceStarted) return;
-    const prevIndex = (currentSceneIndex - 1 + scenes.length) % scenes.length;
-    loadScene(prevIndex);
+    loadScene((currentSceneIndex - 1 + scenes.length) % scenes.length);
 }
 
 function toggleSceneMenu() {
@@ -426,9 +643,12 @@ function toggleSceneMenu() {
     menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
 }
 
+function toggle3DMode() {
+    loadScene(1);
+}
+
 // ========== SISTEMA DE MÚSICA ==========
 function playSceneMusic(sceneIndex) {
-    // Detener música actual si existe
     if (currentAudio) {
         currentAudio.pause();
         currentAudio = null;
@@ -437,14 +657,11 @@ function playSceneMusic(sceneIndex) {
     const scene = scenes[sceneIndex];
     if (!scene.music) return;
     
-    // Crear nuevo elemento de audio para esta escena
     currentAudio = new Audio(scene.music);
     currentAudio.volume = 0.5;
     currentAudio.loop = true;
-    currentAudio.preload = 'none';
     
     const playPromise = currentAudio.play();
-    
     if (playPromise !== undefined) {
         playPromise.then(() => {
             isMusicPlaying = true;
@@ -463,7 +680,6 @@ function createMusicActivationButton(sceneIndex) {
     const btn = document.createElement('button');
     btn.id = 'music-activation-btn';
     btn.innerHTML = `🎵 Activar Música: ${scene.name}`;
-        
     document.body.appendChild(btn);
     
     btn.onclick = function() {
@@ -471,17 +687,10 @@ function createMusicActivationButton(sceneIndex) {
             currentAudio.play().then(() => {
                 isMusicPlaying = true;
                 updateMusicIcon();
-                btn.style.transform = 'translateX(-50%) scale(0.9)';
-                setTimeout(() => btn.remove(), 300);
-            }).catch(err => {
-                btn.innerHTML = '❌ Error - Click para intentar';
+                btn.remove();
             });
         }
     };
-                        
-    setTimeout(() => {
-        if (btn.parentNode) btn.remove();
-    }, 10000);
 }
 
 function toggleMusic() {
@@ -491,11 +700,7 @@ function toggleMusic() {
         currentAudio.pause();
         isMusicPlaying = false;
     } else {
-        currentAudio.play().then(() => {
-            isMusicPlaying = true;
-        }).catch(error => {
-            createMusicActivationButton(currentSceneIndex);
-        });
+        currentAudio.play().then(() => { isMusicPlaying = true; });
     }
     updateMusicIcon();
 }
@@ -507,13 +712,24 @@ function updateMusicIcon() {
     }
 }
 
-// ========== EFECTOS VISUALES ==========
-function createSnowflakes() {
-    const snowflakeChars = ['❄', '❆', '❅'];
-    const snowContainer = document.body;
+// ========== EFECTOS VISUALES (2D) ==========
+function cleanup2DEffects() {
+    document.querySelectorAll('.star, .floating-heart, .bts-element, .special-message').forEach(el => el.remove());
+}
 
-    // Clear existing snowflakes
-    const existingSnowflakes = document.querySelectorAll('.snowflake');
+function create2DEffects() {
+    createStars();
+    createFloatingHearts();
+    createBTSElements();
+    createSpecialMessages();
+}
+
+function createSnowflakes() {
+    const snowflakeChars = ['❄', '❆', '❅', '·', '.'];
+    const snowContainer = document.getElementById('snow-garden');
+    if (!snowContainer) return;
+
+    const existingSnowflakes = snowContainer.querySelectorAll('.snowflake');
     existingSnowflakes.forEach(flake => flake.remove());
 
     for (let i = 0; i < 150; i++) {
@@ -522,19 +738,33 @@ function createSnowflakes() {
         snowflake.textContent = snowflakeChars[Math.floor(Math.random() * snowflakeChars.length)];
         snowContainer.appendChild(snowflake);
 
+        const startX = Math.random() * window.innerWidth;
+        const duration = Math.random() * 15 + 8;
+
         gsap.set(snowflake, {
-            x: Math.random() * window.innerWidth,
-            y: -20,
-            fontSize: (Math.random() * 1.5 + 0.5) + 'rem',
-            opacity: Math.random() * 0.7 + 0.3,
+            x: startX,
+            y: -30,
+            fontSize: (Math.random() * 1.2 + 0.4) + 'rem',
+            opacity: Math.random() * 0.6 + 0.2,
         });
 
         gsap.to(snowflake, {
-            duration: Math.random() * 10 + 5,
-            y: window.innerHeight + 10,
+            duration: duration,
+            y: window.innerHeight + 30,
+            x: startX + (Math.random() * 200 - 100),
+            rotation: Math.random() * 360,
             ease: 'none',
             repeat: -1,
             delay: Math.random() * -15,
+        });
+
+        gsap.to(snowflake, {
+            duration: Math.random() * 2 + 1,
+            opacity: Math.random() * 0.5 + 0.5,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut',
+            delay: Math.random() * 2
         });
     }
 }
@@ -600,235 +830,6 @@ function createSpecialMessages() {
     }
 }
 
-// ========== SISTEMA 3D INMERSIVO ==========
-function toggle3DMode() {
-    is3DMode = !is3DMode;
-    const currentScene = document.getElementById(scenes[currentSceneIndex].id);
-    
-    if (is3DMode) {
-        // Activar modo 3D
-        currentScene.classList.add('scene-3d', 'scene-3d-active');
-        create3DEnvironment(currentScene);
-        startParallaxEffect();
-        
-        // Actualizar botón
-        const btn3D = document.querySelector('.nav-3d');
-        btn3D.innerHTML = '<i class="fas fa-cube" style="color: #ff6b9d;"></i>';
-        btn3D.style.background = 'rgba(255, 107, 157, 0.6)';
-        
-    } else {
-        // Desactivar modo 3D
-        currentScene.classList.remove('scene-3d', 'scene-3d-active');
-        remove3DEnvironment(currentScene);
-        
-        // Restaurar botón
-        const btn3D = document.querySelector('.nav-3d');
-        btn3D.innerHTML = '<i class="fas fa-cube"></i>';
-        btn3D.style.background = 'rgba(165, 212, 233, 0.4)';
-    }
-}
-
-function create3DEnvironment(scene) {
-    // Limpiar escena primero
-    scene.innerHTML = '';
-    
-    // Crear contenedor parallax
-    const parallaxContainer = document.createElement('div');
-    parallaxContainer.className = 'parallax-container';
-    parallaxContainer.id = 'parallax-container';
-    
-    // Crear capas de profundidad
-    for (let i = 1; i <= 5; i++) {
-        const layer = document.createElement('div');
-        layer.className = `parallax-layer layer-${i}`;
-        layer.id = `layer-${i}`;
-        parallaxContainer.appendChild(layer);
-        
-        // Agregar partículas a cada capa
-        createParticlesForLayer(layer, i);
-    }
-    
-    // Agregar gradiente de fondo
-    const bgGradient = document.createElement('div');
-    bgGradient.className = 'bg-gradient-3d';
-    parallaxContainer.appendChild(bgGradient);
-    
-    scene.appendChild(parallaxContainer);
-    
-    // Crear fotos en 3D
-    create3DPhotos(scene);
-    
-    // Crear elementos decorativos 3D
-    create3DFloatingElements(scene);
-}
-
-function createParticlesForLayer(layer, layerIndex) {
-    const particleCount = layerIndex * 8;
-    const particleTypes = ['heart', 'star', 'bubble'];
-    const colors = ['#FFB7C5', '#FFD1DC', '#D8BFD8', '#E6E6FA', '#B5EAD7', '#A7FFEB', '#87CEEB', '#FFF9C4'];
-    
-    for (let i = 0; i < particleCount; i++) {
-        const particle = document.createElement('div');
-        const type = particleTypes[Math.floor(Math.random() * particleTypes.length)];
-        
-        particle.className = `particle-3d particle-${type}`;
-        
-        switch(type) {
-            case 'heart':
-                particle.innerHTML = '💖';
-                particle.style.color = colors[Math.floor(Math.random() * colors.length)];
-                particle.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
-                break;
-            case 'star':
-                const size = Math.random() * 8 + 3;
-                particle.style.width = size + 'px';
-                particle.style.height = size + 'px';
-                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-                break;
-            case 'bubble':
-                const bubbleSize = Math.random() * 20 + 10;
-                particle.style.width = bubbleSize + 'px';
-                particle.style.height = bubbleSize + 'px';
-                particle.style.background = `radial-gradient(circle at 30% 30%, ${colors[Math.floor(Math.random() * colors.length)]}, transparent)`;
-                break;
-        }
-        
-        const startX = Math.random() * 120 - 10 + '%';
-        const startY = Math.random() * 120 - 10 + '%';
-        const endX = (Math.random() - 0.5) * 200 + '%';
-        const endY = (Math.random() - 0.5) * 200 + '%';
-        const startZ = -500 + (layerIndex * 100);
-        const endZ = 500 - (layerIndex * 100);
-        
-        particle.style.setProperty('--start-x', startX);
-        particle.style.setProperty('--start-y', startY);
-        particle.style.setProperty('--start-z', startZ + 'px');
-        particle.style.setProperty('--end-x', endX);
-        particle.style.setProperty('--end-y', endY);
-        particle.style.setProperty('--end-z', endZ + 'px');
-        particle.style.setProperty('--opacity', Math.random() * 0.7 + 0.3);
-        
-        const duration = 15 + Math.random() * 20;
-        const delay = Math.random() * 10;
-        particle.style.animationDuration = duration + 's';
-        particle.style.animationDelay = delay + 's';
-        
-        layer.appendChild(particle);
-    }
-}
-
-function create3DPhotos(scene) {
-    const positions = [
-        { x: 25, y: 30, z: 50 }, { x: 75, y: 30, z: -30 },
-        { x: 25, y: 70, z: -20 }, { x: 75, y: 70, z: 40 },
-        { x: 50, y: 50, z: 0 }, { x: 30, y: 50, z: 25 },
-        { x: 70, y: 50, z: -25 }, { x: 50, y: 20, z: 15 }
-    ];
-    
-    for (let i = 0; i < Math.min(photos.length, 8); i++) {
-        const frame = document.createElement('div');
-        frame.className = 'photo-frame-3d';
-        frame.style.left = positions[i].x + '%';
-        frame.style.top = positions[i].y + '%';
-        frame.style.transform = `translateZ(${positions[i].z}px) rotateY(${Math.random() * 20 - 10}deg) rotateX(${Math.random() * 10 - 5}deg)`;
-        
-        const img = document.createElement('img');
-        img.src = photos[i];
-        img.alt = `Nuestra foto ${i + 1}`;
-        img.draggable = false;
-        
-        frame.appendChild(img);
-        parallaxContainer.appendChild(frame);
-        
-        setup3DDragAndDrop(frame);
-    }
-}
-
-function setup3DDragAndDrop(element) {
-    let isDragging = false;
-    let startX, startY;
-    let initialX, initialY;
-    
-    element.addEventListener('mousedown', startDrag);
-    element.addEventListener('touchstart', startDrag, { passive: false });
-    
-    function startDrag(e) {
-        isDragging = true;
-        element.classList.add('dragging');
-        
-        const rect = element.getBoundingClientRect();
-        initialX = parseFloat(element.style.left);
-        initialY = parseFloat(element.style.top);
-        
-        if (e.type === 'mousedown') {
-            startX = e.clientX;
-            startY = e.clientY;
-        } else {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-            e.preventDefault();
-        }
-        
-        document.addEventListener('mousemove', drag);
-        document.addEventListener('touchmove', drag, { passive: false });
-        document.addEventListener('mouseup', stopDrag);
-        document.addEventListener('touchend', stopDrag);
-    }
-    
-    function drag(e) {
-        if (!isDragging) return;
-        
-        let currentX, currentY;
-        
-        if (e.type === 'mousemove') {
-            currentX = e.clientX;
-            currentY = e.clientY;
-        } else {
-            currentX = e.touches[0].clientX;
-            currentY = e.touches[0].clientY;
-            e.preventDefault();
-        }
-        
-        const deltaX = currentX - startX;
-        const deltaY = currentY - startY;
-        
-        const newX = initialX + (deltaX / window.innerWidth) * 100;
-        const newY = initialY + (deltaY / window.innerHeight) * 100;
-        
-        element.style.left = Math.max(5, Math.min(95, newX)) + '%';
-        element.style.top = Math.max(5, Math.min(95, newY)) + '%';
-    }
-    
-    function stopDrag() {
-        if (!isDragging) return;
-        isDragging = false;
-        element.classList.remove('dragging');
-        
-        document.removeEventListener('mousemove', drag);
-        document.removeEventListener('touchmove', drag);
-        document.removeEventListener('mouseup', stopDrag);
-        document.removeEventListener('touchend', stopDrag);
-    }
-}
-
-function create3DFloatingElements(scene) {
-    const elements = ['💖', '💕', '💞', '✨', '🌟', '🦋', '🌸', '🎀'];
-    const container = scene.querySelector('.parallax-container');
-    
-    for (let i = 0; i < 12; i++) {
-        const element = document.createElement('div');
-        element.className = 'floating-element-3d';
-        element.innerHTML = elements[Math.floor(Math.random() * elements.length)];
-        element.style.left = Math.random() * 100 + '%';
-        element.style.top = Math.random() * 100 + '%';
-        element.style.color = ['#FFB7C5', '#D8BFD8', '#B5EAD7', '#87CEEB'][Math.floor(Math.random() * 4)];
-        element.style.fontSize = (Math.random() * 2 + 2) + 'rem';
-        element.style.animationDelay = Math.random() * 10 + 's';
-        
-        container.appendChild(element);
-    }
-}
-
 function setupMouseTracking() {
     document.addEventListener('mousemove', (e) => {
         mouseX = e.clientX;
@@ -843,41 +844,13 @@ function setupMouseTracking() {
     });
 }
 
-function startParallaxEffect() {
-    function updateParallax() {
-        if (!is3DMode) return;
-        
-        const container = document.getElementById('parallax-container');
-        if (!container) return;
-        
-        const moveX = (mouseX / window.innerWidth - 0.5) * 50;
-        const moveY = (mouseY / window.innerHeight - 0.5) * 50;
-        
-        for (let i = 1; i <= 5; i++) {
-            const layer = document.getElementById(`layer-${i}`);
-            if (layer) {
-                const depth = i * 0.2;
-                layer.style.transform = `translate3d(${moveX * depth}px, ${moveY * depth}px, 0)`;
-            }
-        }
-        
-        requestAnimationFrame(updateParallax);
-    }
-    
-    updateParallax();
-}
-
-function remove3DEnvironment(scene) {
-    scene.innerHTML = '';
-    // Esto recargará el contenido normal de la escena
-    loadSceneContent(scenes[currentSceneIndex].id);
-}
-
 // ========== PRELOADER LOGIC ==========
 function startPreloader() {
     const assetsToLoad = [
         ...photos,
-        ...scenes.map(s => s.music).filter(Boolean) // Filter out any scenes without music
+        'Photos/universo.jpg.jpg',
+        'Photos/constelaciones.png',
+        ...scenes.map(s => s.music).filter(Boolean)
     ];
     const totalAssets = assetsToLoad.length;
     let loadedAssets = 0;
@@ -908,9 +881,8 @@ function startPreloader() {
         setTimeout(() => {
             gsap.to(preloader, { opacity: 0, duration: 1, onComplete: () => {
                 preloader.style.display = 'none';
-                // We don't call init() here anymore, the welcome screen will be displayed first
             }});
-        }, 500); // A small delay for effect
+        }, 500);
     }
 
     assetsToLoad.forEach(url => {
@@ -918,22 +890,29 @@ function startPreloader() {
             const img = new Image();
             img.src = url;
             img.onload = assetLoaded;
-            img.onerror = assetLoaded; // Count errors as "loaded" to not block the app
+            img.onerror = assetLoaded;
         } else if (url.match(/\.(mp3)$/)) {
             const audio = new Audio();
             audio.src = url;
-            // Using 'loadeddata' as it fires earlier than 'canplaythrough'
             audio.onloadeddata = assetLoaded;
-            audio.onerror = assetLoaded; // Count errors as "loaded"
+            audio.onerror = assetLoaded;
         } else {
-            // For any other type or if the url is null/undefined, count it as loaded immediately
             assetLoaded();
         }
     });
 }
 
+// ========== GLOBAL ACCESS ==========
+window.startExperience = startExperience;
+window.loadScene = loadScene;
+window.toggleSceneMenu = toggleSceneMenu;
+window.toggleMusic = toggleMusic;
+window.previousScene = previousScene;
+window.nextScene = nextScene;
+window.toggle3DMode = toggle3DMode;
+
 // ========== INICIAR ==========
 window.addEventListener('load', () => {
-    init(); // Call init to set up background effects
-    startPreloader(); // Then start preloading assets
+    init();
+    startPreloader();
 });

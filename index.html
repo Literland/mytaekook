@@ -4,13 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>My Taekook</title>
-    <link rel="icon" href="Photos/Iconweb.png" type="image/png">
+    <link rel="icon" href="/Photos/Iconweb.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module" src="assets/app.js"></script>
 </head>
 <body>
     <!-- Preloader -->
@@ -92,6 +101,6 @@ más allá de las galaxias.
         ❄️ Jardín de Nieve
     </div>
 
-    <script src="assets/app.js"></script>
+    <script type="module" src="assets/app.js"></script>
 </body>
 </html>
