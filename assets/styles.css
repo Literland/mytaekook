@@ -185,7 +185,7 @@ body, html {
 
 /* Escena 1: Jardín de Nieve*/
 #snow-garden {
-    background: linear-gradient(rgba(255, 255, 0, 0.1), rgba(255, 255, 0, 0.1)), url('../Photos/winterbear.jpg');
+    background: linear-gradient(rgba(255, 255, 0, 0.1), rgba(255, 255, 0, 0.1)), url('../public/Photos/winterbear.jpg');
     background-size: cover;
     background-position: center;
 }
